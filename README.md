@@ -1,4 +1,4 @@
 Pretty Print for Gmail
 ----------------
 Pretty print your Gmail emails.  
-This is really just a placeholder for until when we have time.
+We will turn this into a Chrome Extension, but until then, use the bookmarklet on [this page](http://shivankaul.github.io/PrettyPrintGmail/)
