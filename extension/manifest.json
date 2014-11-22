@@ -1,0 +1,16 @@
+{
+  "name": "Pretty Print Gmail",
+  "description": "This extension cleans up printing for Gmail",
+  "version": "0.9",
+"permissions": [
+  "activeTab"
+],
+"background": {
+  "scripts": ["background.js"],
+    "persistent": false
+  },
+  "browser_action": {
+    "default_title": "Pretty printing for Gmail :)"
+  },
+  "manifest_version": 2
+}
