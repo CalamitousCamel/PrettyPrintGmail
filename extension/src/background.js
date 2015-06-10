@@ -4,7 +4,7 @@ chrome.browserAction.onClicked.addListener(function(tab) {
 		var conversation_id = splut[splut.length - 1]
 		var new_url = "https://mail.google.com/mail/u/0/?view=pt&search=inbox&th=" + conversation_id
 		chrome.tabs.create({url : new_url}, function(tabN) { 
-			chrome.tabs.executeScript(tabN.id, {runAt: "document_end", file: 'gmail_pprint.js'});
+			chrome.tabs.executeScript(tabN.id, {runAt: "document_end", file: 'src/gmail_pprint.js'});
 		});
 	})
 
