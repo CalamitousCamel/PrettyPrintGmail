@@ -1,9 +1,12 @@
-// NOTE: ~bar.indexOf("foo") is a prettier way of saying bar contains foo.
+// NOTE: ~bar.indexOf("foo") is a nicer way of saying bar contains foo.
 chrome.browserAction.onClicked.addListener(function(tab) {
 	getCurrentTabUrl(function(url) {
 		var splut = url.split("\/")
 		var conversation_id = splut.pop()
-		var printable = ~splut.indexOf("mail.google.com") && splut.reduce ( function (acc, str) { return ~str.indexOf("#") || acc }, false ) 
+		// Current logic to make sure that we're on a printable email
+		var printable = ~splut.indexOf("mail.google.com") &&
+		 splut.reduce ( function (acc, str) { return ~str.indexOf("#") || acc }, false )
+		 
 		var new_url;
 		if (printable) {
 			new_url = "https://mail.google.com/mail/u/0/?view=pt&search=inbox&th=" + conversation_id
