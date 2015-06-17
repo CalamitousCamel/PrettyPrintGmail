@@ -7,12 +7,12 @@ var receiver_sender = document.getElementsByClassName("recipient");
 var attachments = document.getElementsByClassName("att");
 
 // Remove...
-tables[0].parentNode.removeChild(tables[0])
-deleteAll(receiver_sender)
-deleteAll(attachments)
+tables[0].parentNode.removeChild(tables[0]);
+deleteAll(receiver_sender);
+deleteAll(attachments);
 
 // At the end, force-open print dialog
-window.print()
+window.print();
 
 // HELPER FUNCTION: delete all matched nodes + their children
 function deleteAll(collection) {
