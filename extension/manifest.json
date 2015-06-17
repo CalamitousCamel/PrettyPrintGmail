@@ -2,7 +2,7 @@
   "name": "Pretty Print Gmail",
   "short_name": "PPG",
   "description": "Clean up printing for Gmail",
-  "version": "1.0",
+  "version": "1.01",
   "permissions": [
   "activeTab", "https://mail.google.com/mail/u/0/*"
   ],

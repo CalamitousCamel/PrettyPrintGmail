@@ -1,13 +1,19 @@
 chrome.browserAction.onClicked.addListener(function(tab) {
 	getCurrentTabUrl(function(url) {
 		var splut = url.split("\/")
-		var conversation_id = splut[splut.length - 1]
-		var new_url = "https://mail.google.com/mail/u/0/?view=pt&search=inbox&th=" + conversation_id
+		console.log(splut.toString())
+		var conversation_id = splut.pop()
+		var printable = ~splut.indexOf("mail.google.com") && splut.reduce ( function (acc, str) { return ~str.indexOf("#") || acc }, false ) 
+		var new_url;
+		if (printable) {
+			new_url = "https://mail.google.com/mail/u/0/?view=pt&search=inbox&th=" + conversation_id
+		} else {
+			new_url = "https://mail.google.com"
+		}
 		chrome.tabs.create({url : new_url}, function(tabN) { 
 			chrome.tabs.executeScript(tabN.id, {runAt: "document_end", file: 'src/gmail_pprint.js'});
 		});
 	})
-
 });
 /**
  * Get the current URL. Citation: https://developer.chrome.com/extensions/getstarted
