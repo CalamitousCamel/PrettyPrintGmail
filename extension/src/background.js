@@ -1,7 +1,7 @@
+// NOTE: ~bar.indexOf("foo") is a prettier way of saying bar contains foo.
 chrome.browserAction.onClicked.addListener(function(tab) {
 	getCurrentTabUrl(function(url) {
 		var splut = url.split("\/")
-		console.log(splut.toString())
 		var conversation_id = splut.pop()
 		var printable = ~splut.indexOf("mail.google.com") && splut.reduce ( function (acc, str) { return ~str.indexOf("#") || acc }, false ) 
 		var new_url;

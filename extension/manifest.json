@@ -2,7 +2,7 @@
   "name": "Pretty Print Gmail",
   "short_name": "PPG",
   "description": "Clean up printing for Gmail",
-  "version": "1.01",
+  "version": "1.1",
   "permissions": [
   "activeTab", "https://mail.google.com/mail/u/0/*"
   ],
@@ -14,8 +14,18 @@
     "scripts": ["src/background.js"],
     "persistent": false
   },
+  "commands": {
+          "_execute_browser_action": {
+            "suggested_key": {
+              "windows": "Alt+P",
+              "mac": "Alt+P",
+              "chromeos": "Alt+P",
+              "linux": "Alt+P"
+            }
+          }
+  },
   "browser_action": {
-      "default_title": "Pretty print this email!",
+      "default_title": "Pretty Print Gmail",
       "default_icon": "assets/icon-16.png"
   },
   "manifest_version": 2
