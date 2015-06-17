@@ -11,3 +11,4 @@ for (var i = 0; i < receiver_sender.length; i++) {
 		receiver_sender[i].removeChild(receiver_sender[i].firstChild);
 	}
 }
+window.print()

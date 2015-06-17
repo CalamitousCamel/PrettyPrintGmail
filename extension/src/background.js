@@ -7,12 +7,13 @@ chrome.browserAction.onClicked.addListener(function(tab) {
 		var new_url;
 		if (printable) {
 			new_url = "https://mail.google.com/mail/u/0/?view=pt&search=inbox&th=" + conversation_id
+			chrome.tabs.create({url : new_url}, function(newTab) { 
+			chrome.tabs.executeScript(newTab.id, {runAt: "document_end", file: 'src/gmail_pprint.js'});
+		});
 		} else {
 			new_url = "https://mail.google.com"
+			chrome.tabs.create({url : new_url}) 
 		}
-		chrome.tabs.create({url : new_url}, function(tabN) { 
-			chrome.tabs.executeScript(tabN.id, {runAt: "document_end", file: 'src/gmail_pprint.js'});
-		});
 	})
 });
 /**
