@@ -1,22 +1,22 @@
 // NOTE: ~bar.indexOf("foo") is a nicer way of saying: if bar contains foo then give truthy value else falsy
 chrome.browserAction.onClicked.addListener(function(tab) {
-	getCurrentTabUrl(function(url) {
+	get_current_tab_url(function(url) {
 		var splut = url.split("\/");
-		var conversation_id = splut.pop();
-		var position_of_inbox_id = 5;
+		var conversationId = splut.pop();
+		var positionOfInboxId = 5;
 		// Current logic to make sure that we're on a printable email
 		var printable = ~splut.indexOf("mail.google.com") &&
 		 splut.reduce ( function (acc, str) { return ~str.indexOf("#") || acc }, false );
-		var new_url;
+		var newUrl;
 		if (printable) {
-			var inbox = splut[position_of_inbox_id];
-			new_url = "https://mail.google.com/mail/u/" + inbox + "/?view=pt&search=inbox&th=" + conversation_id;
-			chrome.tabs.create({url : new_url}, function(newTab) { 
+			var inbox = splut[positionOfInboxId];
+			newUrl = "https://mail.google.com/mail/u/" + inbox + "/?view=pt&search=inbox&th=" + conversationId;
+			chrome.tabs.create({url : newUrl}, function(newTab) { 
 			chrome.tabs.executeScript(newTab.id, {runAt: "document_end", file: 'src/gmail_pprint.js'});
 		});
 		} else {
-			new_url = "https://mail.google.com";
-			chrome.tabs.create({url : new_url}); 
+			newUrl = "https://mail.google.com";
+			chrome.tabs.create({url : newUrl}); 
 		}
 	})
 });
@@ -25,7 +25,7 @@ chrome.browserAction.onClicked.addListener(function(tab) {
  * @param {function(string)} callback - called when the URL of the current tab
  *   is found.
  */
- function getCurrentTabUrl(callback) {
+ function get_current_tab_url(callback) {
  	var queryInfo = {
  		active: true,
  		currentWindow: true
