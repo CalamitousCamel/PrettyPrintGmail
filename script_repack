@@ -1,2 +1,0 @@
-rm -f PrettyPrint.zip
-zip -r PrettyPrint.zip extension/
