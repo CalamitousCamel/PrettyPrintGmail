@@ -1,4 +1,3 @@
-// NOTE: ~bar.indexOf("foo") is a nicer way of saying: if bar contains foo then give truthy value else falsy
 chrome.browserAction.onClicked.addListener(function(tab) {
 	get_current_tab_url(function(url) {
 		var splut = url.split("\/");
@@ -20,6 +19,42 @@ chrome.browserAction.onClicked.addListener(function(tab) {
 		}
 	})
 });
+
+// https://gist.github.com/SathyaBhat/894012
+
+
+
+// console.log("here!")
+// var mql = window.matchMedia('print');
+// mql.addListener(function(thing) {
+// 	if (thing.matches) {
+// 		console.log("SHIVANNNN")
+// 		alert("hi")
+// 	} else {
+// 		console.log("AFTER PRINT")
+// 		alert("bye")
+// 	}
+// });
+
+document.addEventListener("keydown", pressedPrint, false);
+
+function pressedPrint(e) {
+var keyCode = e.keyCode;
+  if(keyCode==13) {
+  alert("You hit the enter key.");
+  } else {
+  alert("Oh no you didn't.");
+  }
+}
+
+// window.onload  = function(){
+//     document.keydown(function(event) {
+//         if (event.ctrlKey==true && event.which == '80') { //cntrl + p
+//             event.preventDefault();
+//         }
+//     });
+//  });
+
 /**
  * Get the current URL. Citation: https://developer.chrome.com/extensions/getstarted
  * @param {function(string)} callback - called when the URL of the current tab

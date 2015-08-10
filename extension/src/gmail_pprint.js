@@ -1,7 +1,7 @@
 // Get...
 // Gmail header, which (at least for now) is the first table
 var tables = document.getElementsByTagName("table");
-// receiver + sender cruft. The email id that shows up next to the name should be enough, methinks.
+// receiver + sender cruft. The email id that shows up next to the name should be enough
 var receiverSender = document.getElementsByClassName("recipient");
 // attachment images
 var attachments = document.getElementsByClassName("att");
@@ -14,7 +14,7 @@ delete_all(attachments);
 // At the end, force-open print dialog
 window.print();
 
-// HELPER FUNCTION: delete all matched nodes + their children
+// Delete all matched nodes + their children
 function delete_all(collection) {
 	for (var i = 0; i < collection.length; i++) {
 		// Delete all children (so sad)

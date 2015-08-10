@@ -1,5 +1,6 @@
 ### 1.2
 - Add support for printing if you have multiple inboxes connected to your Google Account.
+- Use content script to check if you're trying to print a single email (in a thread), and prettify the view.
 
 ### 1.1
 - If not on a printable page (i.e. not on an email), clicking on browser action takes us to gmail.com. Else, prints.
