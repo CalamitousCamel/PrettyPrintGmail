@@ -1,3 +1,6 @@
+### 1.2.1
+- Code clean up
+
 ### 1.2
 - Add support for printing if you have multiple inboxes connected to your Google Account.
 - Use content script to check if you're trying to print a single email (in a thread), and prettify the view.
