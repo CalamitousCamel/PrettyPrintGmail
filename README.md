@@ -13,3 +13,6 @@ If you want to pretty print a single email in a thread ([from Gmail Help](https:
 I also wrote a [blog post](http://shivankaul.com/blog/2015/06/10/pretty-print-gmail.html) about it.
 
 Merci beaucoup.
+
+----------------
+Icon credits: Plainicon from www.flaticon.com.
