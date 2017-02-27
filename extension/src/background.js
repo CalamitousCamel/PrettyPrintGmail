@@ -1,29 +1,75 @@
+function contains(container, element) {
+    return container.indexOf(element) > -1;
+}
+
+function print(url, active) {
+    chrome.tabs.create({
+        url: url,
+        active: active
+    }, function(newTab) {
+        chrome.tabs.executeScript(newTab.id, {
+            runAt: "document_end",
+            file: 'src/print.js'
+        });
+    });
+}
+
+function registerMessageListener(url) {
+    chrome.runtime.onMessage.addListener(
+        function messageListener(request, sender, sendResponse) {
+            if (request.threadIds) {
+                for (tid of request.threadIds) {
+                    print(url + tid, false);
+                }
+            }
+            chrome.runtime.onMessage.removeListener(messageListener);
+        }
+    );
+}
+
+// Are in inbox
+//	- get selected emails (gmail.get.selected_emails_data())
+// Are on thread
+//	- get thread id
+
+function inThread(urlElements) {
+    return inGmail(urlElements) && urlElements.reduce(function(acc, str) {
+        return contains(str, "#") || acc
+    }, false);
+}
+
+function inGmail(urlElements) {
+    return contains(urlElements, "mail.google.com");
+}
+
 chrome.browserAction.onClicked.addListener(function(tab) {
     get_current_tab_url(function(url) {
-        var splut = url.split("\/");
-        var conversationId = splut.pop();
+        var urlElements = url.split("\/");
+        var threadId = urlElements.pop();
         var positionOfInboxId = 5;
+        var inboxNumber = urlElements[positionOfInboxId];
+        var canonicalUrl = "https://mail.google.com/mail/u/";
+        var printUrl = canonicalUrl + inboxNumber + "/?view=pt&search=inbox&th=";
         // Current logic to make sure that we're on a printable email
-        var printable = ~splut.indexOf("mail.google.com") &&
-            splut.reduce(function(acc, str) {
-                return ~str.indexOf("#") || acc
-            }, false);
-        var newUrl;
+        var printable = inThread(urlElements);
         if (printable) {
-            var inbox = splut[positionOfInboxId];
-            newUrl = "https://mail.google.com/mail/u/" + inbox + "/?view=pt&search=inbox&th=" + conversationId;
-            chrome.tabs.create({
-                url: newUrl
-            }, function(newTab) {
-                chrome.tabs.executeScript(newTab.id, {
-                    runAt: "document_end",
-                    file: 'src/gmail_pprint.js'
-                });
+            // On a printable email
+            // Print view url
+            print(printUrl + threadId, true);
+        } else if (inGmail(urlElements)) {
+        	// Print multiple
+            chrome.tabs.executeScript({
+                runAt: "document_end",
+                file: 'src/print_multiple.js'
             });
+            // Register and immediately de-register message listener
+            // Had problem where I was registering multiple listeners
+            registerMessageListener(printUrl);
         } else {
-            newUrl = "https://mail.google.com";
+            // Just go to Gmail
+            printUrl = "https://mail.google.com";
             chrome.tabs.create({
-                url: newUrl
+                url: printUrl
             });
         }
     })
