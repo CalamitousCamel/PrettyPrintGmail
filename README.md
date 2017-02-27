@@ -4,6 +4,8 @@ Pretty print Gmail emails. [Chrome extension](https://chrome.google.com/webstore
 
 Once installed, open up the email thread you want to print, and press `Alt + P`. That's it. You'll get a print view devoid of annoying Gmail logos, sender/receiver information, etc. Alternatively, if you hate shortcuts, click on the orange printer button next to the address bar to print.
 
+NOW SUPPORTED: multiple email printing. From the main Gmail page ("mail.google.com"), select all the emails you want to print, and press Alt + P or click the extension icon. 
+
 If you want to pretty print a single email in a thread ([from Gmail Help](https://support.google.com/mail/answer/8255?hl=en)): 
 
 - Open the message you want to print
@@ -11,8 +13,6 @@ If you want to pretty print a single email in a thread ([from Gmail Help](https:
 - Select Print. The extension cleans this up too.
 
 I also wrote a [blog post](http://shivankaul.com/blog/2015/06/10/pretty-print-gmail.html) about it.
-
-Merci beaucoup.
 
 -----
 Icon credits: Plainicon from www.flaticon.com.
