@@ -1,3 +1,9 @@
+### 1.2.3
+- Multiple email printing
+
+### 1.2.2
+- Uninstall link
+
 ### 1.2.1
 - Code clean up
 

@@ -2,9 +2,11 @@
   "name": "Pretty Print Gmail",
   "short_name": "PrettyPrint",
   "description": "Cleans up printing for Gmail.",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "permissions": [
-    "activeTab", "https://mail.google.com/mail/u/*", "tabs"
+    "activeTab",
+    "https://mail.google.com/mail/u/*",
+    "tabs"
   ],
   "icons": {
     "16": "assets/icon-16.png",
@@ -13,9 +15,22 @@
     "128": "assets/icon-128.png"
   },
   "background": {
-    "scripts": ["src/background.js"],
+    "scripts": [
+      "src/background.js"
+    ],
     "persistent": false
   },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://mail.google.com/mail/u/*view=pt*&msg=*"
+      ],
+      "js": [
+        "src/print.js"
+      ],
+      "run_at": "document_end"
+    }
+  ],
   "commands": {
     "_execute_browser_action": {
       "suggested_key": {
