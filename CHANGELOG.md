@@ -1,3 +1,6 @@
+### 1.2.5
+- Fix bug with multiple printing in search/labels/etc
+
 ### 1.2.4
 - Fix bug with multiple printing in different categories
 

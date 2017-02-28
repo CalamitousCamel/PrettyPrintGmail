@@ -1,31 +1,25 @@
-var ROW_SELECTOR = ROW_SELECTOR || "zA";
-var SELECTED_SELECTOR = SELECTED_SELECTOR || "x7";
+'use strict';
 
-function contains(container, element) {
-    return container.indexOf(element) > -1;
-}
-
-function getViewData() {
+function getGlobals() {
     // Get all scripts
     var scripts = document.getElementsByTagName('script'),
-        currentScriptText, varViewDataPos, viewDataScript, viewData;
+        currentScriptText, varGlobalsPos, globalsScript, globals;
 
-    // Look for where VIEW_DATA is defined
+    // Look for where GLOBALS is defined
     for (var i = 0; i < scripts.length; i++) {
         currentScriptText = scripts[i].textContent;
-        varViewDataPos = currentScriptText.indexOf("var VIEW_DATA=");
-        if (varViewDataPos >= 0) {
-            // Toss everything before VIEW_DATA is defined
-            viewDataScript = currentScriptText.slice(varViewDataPos);
+        varGlobalsPos = currentScriptText.indexOf("var GLOBALS=");
+        if (varGlobalsPos >= 0) {
+            // Toss everything before GLOBALS is defined
+            globalsScript = currentScriptText.slice(varGlobalsPos);
             break;
         }
     }
+    return globalsScript;
+}
 
-    // Eval in closure (to be slightly less gross)
-    return (function(script) {
-        eval(script);
-        return VIEW_DATA;
-    })(viewDataScript);
+function getIkFromGlobals(globals) {
+    return JSON.parse(globals.split(',')[9]);
 }
 
 function pickFirst(arr) {
@@ -34,49 +28,35 @@ function pickFirst(arr) {
     });
 }
 
-function getThreadIds(viewData) {
-    return viewData.map(function(arrayItem) {
-        if (arrayItem[0] == "tb") {
-            return pickFirst(arrayItem[2]);
-        }
-    }).filter(function(ele) {
-        return ele != undefined
-    });
+function getIndexInParent(node) {
+    return Array.from(node.parentNode.children).indexOf(node);
 }
 
-function getCategorySelected() {
-    // Get the tr containing the div
-    let selectedCat = document.querySelector('tr div[aria-selected="true"]').parentNode;
-    // Get index in table
-    return Array.from(selectedCat.parentNode.children).indexOf(selectedCat);
+function getSelectedRowsIndices() {
+    let selectedRows = document.querySelectorAll('[gh="tl"] div[role="checkbox"][aria-checked="true"]');
+    // Get indices in table
+    return Array.from(selectedRows).map(function(row) {
+        return getIndexInParent(row.parentNode.parentNode);
+    })
 }
 
-/*
-    Figure out unique ids of all selected trs
-*/
+function zipWithIndices(arr, indices) {
+    return indices.map(function(index) {
+        return arr[index];
+    })
+}
+
 function getSelectedThreadIds() {
-    let threadIds = [];
-
-    // Determine which category we're on
-    let selectedCat = getCategorySelected();
-    // Return an array of array of ids as strings, and
-    // choose the one that belongs to the category we're in
-    let allThreadIds = getThreadIds(getViewData())[selectedCat];
-    var allRows = document.getElementsByClassName(ROW_SELECTOR);
-    // Get position of all the ones that have x7 in class name
-    for (var i = 0; i < allRows.length; i++) {
-        if (contains(allRows[i].className, SELECTED_SELECTOR)) {
-            threadIds.push(allThreadIds[i]);
-        }
-    }
-    return threadIds;
+    return getVisibleEmails()
+        .then((emails) => zipWithIndices(emails, getSelectedRowsIndices()))
 }
 
-function main() {
-    var selectedThreadIds = getSelectedThreadIds();
-    console.log("[DEBUG][PPG]: In print_multiple.js, selectedThreadIds: " + selectedThreadIds);
-    chrome.runtime.sendMessage({ threadIds: selectedThreadIds });
-}
 
-// Kick off everything
-main();
+// Start
+getSelectedThreadIds()
+    .then((selectedThreadIds) => {
+        chrome.runtime.sendMessage({ threadIds: selectedThreadIds })
+    })
+    .catch(function(error) {
+        console.log(error);
+    });

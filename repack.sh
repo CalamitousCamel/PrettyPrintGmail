@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Keep this script in top-level of Chrome Extension project, right above contents of extension/ directory. 
+# Keep this script in top-level of Chrome Extension project, right above contents of extension/ directory.
 # It assumes that manifest.json file exists one level inside extension/ directory (as it should).
 # Removes .DS_Stores before packaging, if on Mac.
 
@@ -12,7 +12,7 @@ find . -type f -name "$name-*.zip" -exec rm {} +
 if [[ "$OSTYPE" == "darwin"* ]]; then
         # Mac OSX, so remove all .DS_Stores
 	echo "Removing .DS_Stores..."
-        find . -name ‘*.DS_Store’ -type f -delete
+        find . -name '*.DS_Store' -type f -delete
 	echo "Done."
 fi
 

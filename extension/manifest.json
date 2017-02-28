@@ -2,7 +2,7 @@
   "name": "Pretty Print Gmail",
   "short_name": "PrettyPrint",
   "description": "Cleans up printing for Gmail.",
-  "version": "1.2.4",
+  "version": "1.2.5",
   "permissions": [
     "activeTab",
     "https://mail.google.com/mail/u/*",
@@ -16,7 +16,7 @@
   },
   "background": {
     "scripts": [
-      "src/background.js"
+      "lib/helper.js", "src/background.js"
     ],
     "persistent": false
   },

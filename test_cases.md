@@ -4,8 +4,11 @@
 	- The print dialog should open up
 - Clicking browser icon while not on an email will open up a new tab to mail.google.com
 - Shortcut key works identically to clicking browser icon
+- Individual email printing works
 - Multiple printing works
-- Works in all tabs
+    + Works in all categories
+    + Works in search
+    + Works with labels
 
 ### Nice-to-haves
 - No unnecessary address info
