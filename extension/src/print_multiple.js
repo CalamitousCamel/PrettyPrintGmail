@@ -1,6 +1,9 @@
-var ROW_SELECTOR = ROW_SELECTOR || "zA yO";
-var SELECTED_SELECTOR = SELECTED_SELECTOR || "zA yO x7";
+var ROW_SELECTOR = ROW_SELECTOR || "zA";
+var SELECTED_SELECTOR = SELECTED_SELECTOR || "x7";
 
+function contains(container, element) {
+    return container.indexOf(element) > -1;
+}
 
 function getViewData() {
     // Get all scripts
@@ -25,10 +28,27 @@ function getViewData() {
     })(viewDataScript);
 }
 
+function pickFirst(arr) {
+    return arr.map(function(element) {
+        return element[0];
+    });
+}
+
 function getThreadIds(viewData) {
-    return viewData[3][2].map(function(thread) {
-        return thread[0];
-    })
+    return viewData.map(function(arrayItem) {
+        if (arrayItem[0] == "tb") {
+            return pickFirst(arrayItem[2]);
+        }
+    }).filter(function(ele) {
+        return ele != undefined
+    });
+}
+
+function getCategorySelected() {
+    // Get the tr containing the div
+    let selectedCat = document.querySelector('tr div[aria-selected="true"]').parentNode;
+    // Get index in table
+    return Array.from(selectedCat.parentNode.children).indexOf(selectedCat);
 }
 
 /*
@@ -36,12 +56,16 @@ function getThreadIds(viewData) {
 */
 function getSelectedThreadIds() {
     let threadIds = [];
-    let allThreadIds = getThreadIds(getViewData());
-    // return an array of ids as strings
+
+    // Determine which category we're on
+    let selectedCat = getCategorySelected();
+    // Return an array of array of ids as strings, and
+    // choose the one that belongs to the category we're in
+    let allThreadIds = getThreadIds(getViewData())[selectedCat];
     var allRows = document.getElementsByClassName(ROW_SELECTOR);
     // Get position of all the ones that have x7 in class name
     for (var i = 0; i < allRows.length; i++) {
-        if (allRows[i].className == SELECTED_SELECTOR) {
+        if (contains(allRows[i].className, SELECTED_SELECTOR)) {
             threadIds.push(allThreadIds[i]);
         }
     }

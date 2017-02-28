@@ -5,6 +5,7 @@
 - Clicking browser icon while not on an email will open up a new tab to mail.google.com
 - Shortcut key works identically to clicking browser icon
 - Multiple printing works
+- Works in all tabs
 
 ### Nice-to-haves
 - No unnecessary address info
