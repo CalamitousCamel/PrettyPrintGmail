@@ -23,31 +23,44 @@ function get_current_tab_url(callback) {
     })
 };
 
-// Set uninstall URL
-var uninstallGoogleFormLink = 'https://docs.google.com/forms/d/e/1FAIpQLSeKS-A4VWmXGnKc6jEqXpBSyjCuZ5Ot5ceTGyXuqIOxEbduHQ/viewform';
-if (chrome.runtime.setUninstallURL) {
-    chrome.runtime.setUninstallURL(uninstallGoogleFormLink);
-}
 
-function print(url, active) {
+
+function print(url, active, emails) {
+    console.log("print called in background js");
     chrome.tabs.create({
         url: url,
         active: active
     }, function(newTab) {
         chrome.tabs.executeScript(newTab.id, {
-            runAt: "document_end",
+            runAt: "document_start",
             file: 'src/print.js'
+        }, function() {
+            chrome.tabs.sendMessage(newTab.id, { emails: emails }, function response() {});
         });
     });
+}
+
+// DEPRECATED
+function registerMessageListener_MultiTabPrinting(url) {
+    chrome.runtime.onMessage.addListener(
+        function messageListener(request, sender, sendResponse) {
+            if (request.threadIds) {
+                for (let tid of request.threadIds) {
+                    print(url + tid, false, {});
+                }
+            }
+            chrome.runtime.onMessage.removeListener(messageListener);
+        }
+    );
 }
 
 function registerMessageListener(url) {
     chrome.runtime.onMessage.addListener(
         function messageListener(request, sender, sendResponse) {
-            if (request.threadIds) {
-                for (let tid of request.threadIds) {
-                    print(url + tid, false);
-                }
+            if (request.emails) {
+                // Use first tid to bring up print view
+                let tid = request.emails[0].thread_id;
+                print(url + tid, false, request.emails);
             }
             chrome.runtime.onMessage.removeListener(messageListener);
         }
@@ -64,17 +77,25 @@ chrome.browserAction.onClicked.addListener(function(tab) {
         var canonicalUrl = "https://mail.google.com/mail/u/";
         var printUrl = canonicalUrl + inboxNumber + "/?view=pt&search=inbox&th=";
         if (isThreadId(threadId.toLowerCase())) {
-            // On a printable email
-            // Print view url
+            // On a printable email...
+            // Print single
             print(printUrl + threadId, true);
         } else if (inGmail(urlElements)) {
-            // Print multiple
+            // Print multiple - fetches html of selected email ids and prints
+            // Print multiple - gets the list of selected thread ids
+            registerMessageListener(printUrl);
+
             chrome.tabs.executeScript({ file: "lib/helper.js" }, function() {
-                chrome.tabs.executeScript({ runAt: "document_end", file: "src/print_multiple.js" });
+                chrome.tabs.executeScript({ runAt: "document_end", file: "src/print_selected.js" });
             });
+            console.log("print url is ", printUrl);
+
+            // chrome.tabs.executeScript({ file: "lib/helper.js" }, function() {
+            //     chrome.tabs.executeScript({ runAt: "document_end", file: "src/fetch_selected_emails.js" });
+            // });
             // Register and immediately de-register message listener
             // Had problem where I was registering multiple listeners
-            registerMessageListener(printUrl);
+            // registerMessageListener_MultiTabPrinting(printUrl);
         } else {
             // Just go to Gmail
             printUrl = "https://mail.google.com";
@@ -83,4 +104,19 @@ chrome.browserAction.onClicked.addListener(function(tab) {
             });
         }
     })
+});
+
+// Check whether new version is installed
+chrome.runtime.onInstalled.addListener(function(details) {
+    if (details.reason == "install") {
+        // First install
+        // Set uninstall URL
+        var uninstallGoogleFormLink = 'https://docs.google.com/forms/d/e/1FAIpQLSeKS-A4VWmXGnKc6jEqXpBSyjCuZ5Ot5ceTGyXuqIOxEbduHQ/viewform';
+        if (chrome.runtime.setUninstallURL) {
+            chrome.runtime.setUninstallURL(uninstallGoogleFormLink);
+        }
+    } else if (details.reason == "update") {
+        var thisVersion = chrome.runtime.getManifest().version;
+        console.log("[PPG][INFO] Updated from " + details.previousVersion + " to " + thisVersion + "!");
+    }
 });
