@@ -100,8 +100,9 @@ function getEmailData(selectedThreadIds) {
     );
 }
 
-function printSelected() {
+function fetchSelectedEmailsData() {
     var selected_emails = [];
+    // Figure out if on thread or in main view
 
     if ($("[gh='tl'] div[role='checkbox'][aria-checked='true']").length) {
         getSelectedThreadIds()
@@ -110,8 +111,8 @@ function printSelected() {
             .catch(function(error) {
                 console.log(error);
             });
-        console.log("[DEBUG][PPG]: Printing multiple emails...");
+        // console.log("[DEBUG][PPG]: Printing multiple emails...");
     }
 };
 
-printSelected();
+fetchSelectedEmailsData();

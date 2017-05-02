@@ -26,13 +26,13 @@ function get_current_tab_url(callback) {
 
 
 function print(url, active, emails) {
-    console.log("print called in background js");
+    // console.log("[PPG][DEBUG] Print called in background js");
     chrome.tabs.create({
         url: url,
         active: active
     }, function(newTab) {
         chrome.tabs.executeScript(newTab.id, {
-            runAt: "document_start",
+            runAt: "document_end",
             file: 'src/print.js'
         }, function() {
             chrome.tabs.sendMessage(newTab.id, { emails: emails }, function response() {});
@@ -79,23 +79,18 @@ chrome.browserAction.onClicked.addListener(function(tab) {
         if (isThreadId(threadId.toLowerCase())) {
             // On a printable email...
             // Print single
-            print(printUrl + threadId, true);
-        } else if (inGmail(urlElements)) {
-            // Print multiple - fetches html of selected email ids and prints
-            // Print multiple - gets the list of selected thread ids
+            console.log("[PPG][DEBUG] Printing single email.");
             registerMessageListener(printUrl);
-
             chrome.tabs.executeScript({ file: "lib/helper.js" }, function() {
-                chrome.tabs.executeScript({ runAt: "document_end", file: "src/print_selected.js" });
+                chrome.tabs.executeScript({ runAt: "document_end", file: "src/fetch_selected_emails_data.js" });
             });
-            console.log("print url is ", printUrl);
-
-            // chrome.tabs.executeScript({ file: "lib/helper.js" }, function() {
-            //     chrome.tabs.executeScript({ runAt: "document_end", file: "src/fetch_selected_emails.js" });
-            // });
-            // Register and immediately de-register message listener
-            // Had problem where I was registering multiple listeners
-            // registerMessageListener_MultiTabPrinting(printUrl);
+            // print(printUrl + threadId, true);
+        } else if (inGmail(urlElements)) {
+            console.log("[PPG][DEBUG] Printing multiple emails.");
+            registerMessageListener(printUrl);
+            chrome.tabs.executeScript({ file: "lib/helper.js" }, function() {
+                chrome.tabs.executeScript({ runAt: "document_end", file: "src/fetch_selected_emails_data.js" });
+            });
         } else {
             // Just go to Gmail
             printUrl = "https://mail.google.com";

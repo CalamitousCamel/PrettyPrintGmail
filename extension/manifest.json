@@ -20,17 +20,6 @@
     ],
     "persistent": false
   },
-  "content_scripts": [
-    {
-      "matches": [
-        "https://mail.google.com/mail/u/*view=pt*&msg=*"
-      ],
-      "js": [
-        "src/print.js"
-      ],
-      "run_at": "document_end"
-    }
-  ],
   "commands": {
     "_execute_browser_action": {
       "suggested_key": {
