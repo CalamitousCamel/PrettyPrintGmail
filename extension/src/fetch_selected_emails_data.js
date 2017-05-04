@@ -70,6 +70,14 @@ function parseEmailData(email_data) {
 
 function sanitizeEmailData(get_data) {
     var data = get_data.substring(get_data.indexOf("["), get_data.length);
+    // Check if Gmail Server error
+    if (contains(data, "var gmail_server_error")) {
+        let error_message = "Gmail server error: ";
+        if (contains(data, "gmail_server_error=3141")) {
+            error_message += "3141, Unusual Usage error";
+        }
+        throw new Error(error_message);
+    }
     var json = JSON.parse(data);
     return parseEmailData(json[0]);
 }
@@ -82,37 +90,49 @@ function getEmailUrl(tid) {
         tid + "&msgs=&mb=0&rt=1&search=mbox";
 }
 
-function getEmailDatumAsync(tid) {
+function getEmailDatum(tid, async) {
     var url = getEmailUrl(tid);
-    if (url !== null) {
+    if (url == null) {
+        throw new Error("threadId " + tid + " is not valid.");
+    }
+    if (async) {
         return makeRequestAsync(url, "GET")
             .then((get_data) => sanitizeEmailData(get_data));
     } else {
-        callback({});
+        return sanitizeEmailData(makeRequest(url, "GET"));
     }
 }
 
-function getEmailData(selectedThreadIds) {
+function getEmailData(selectedThreadIds, async) {
     return Promise.all(
         selectedThreadIds.map(function(tid) {
-            return getEmailDatumAsync(tid);
+            return getEmailDatum(tid, async);
         })
     );
 }
 
-function fetchSelectedEmailsData() {
-    var selected_emails = [];
-    // Figure out if on thread or in main view
-
-    if ($("[gh='tl'] div[role='checkbox'][aria-checked='true']").length) {
-        getSelectedThreadIds()
-            .then((selectedThreadIds) => getEmailData(selectedThreadIds))
-            .then((emails) => chrome.runtime.sendMessage({ emails: emails}))
-            .catch(function(error) {
-                console.log(error);
-            });
-        // console.log("[DEBUG][PPG]: Printing multiple emails...");
+chrome.runtime.onMessage.addListener(
+    function messageListener(message, sender, sendResponse) {
+        let viewState = message.viewState;
+        let selected_emails = [];
+        // Figure out if on thread or in main view
+        if (viewState.inThread) {
+            getEmailData([viewState.threadId], true)
+                .then((email) => sendResponse({ emails: email }))
+                .catch(function(error) {
+                    // TODO: Show what error happened visually to user
+                    console.log(error);
+                });
+        } else if ($("[gh='tl'] div[role='checkbox'][aria-checked='true']").length) {
+            getSelectedThreadIds()
+                .then((selectedThreadIds) => getEmailData(selectedThreadIds, true)) // get async
+                .then((emails) => sendResponse({ emails: emails }))
+                .catch(function(error) {
+                    console.log(error);
+                });
+            // console.log("[DEBUG][PPG]: In fetchSelectedEmailsData");
+        }
+        // Async return
+        return true;
     }
-};
-
-fetchSelectedEmailsData();
+);

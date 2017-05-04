@@ -23,8 +23,6 @@ function get_current_tab_url(callback) {
     })
 };
 
-
-
 function print(url, active, emails) {
     // console.log("[PPG][DEBUG] Print called in background js");
     chrome.tabs.create({
@@ -40,29 +38,26 @@ function print(url, active, emails) {
     });
 }
 
-// DEPRECATED
-function registerMessageListener_MultiTabPrinting(url) {
-    chrome.runtime.onMessage.addListener(
-        function messageListener(request, sender, sendResponse) {
-            if (request.threadIds) {
-                for (let tid of request.threadIds) {
-                    print(url + tid, false, {});
-                }
-            }
-            chrome.runtime.onMessage.removeListener(messageListener);
-        }
-    );
-}
-
-function registerMessageListener(url) {
-    chrome.runtime.onMessage.addListener(
-        function messageListener(request, sender, sendResponse) {
-            if (request.emails) {
-                // Use first tid to bring up print view
-                let tid = request.emails[0].thread_id;
-                print(url + tid, false, request.emails);
-            }
-            chrome.runtime.onMessage.removeListener(messageListener);
+function printEmails(url, viewState) {
+    chrome.tabs.query({
+            active: true,
+            lastFocusedWindow: true
+        },
+        function(tabs) {
+            chrome.tabs.executeScript({ file: "lib/helper.js" }, function() {
+                chrome.tabs.executeScript({
+                    runAt: "document_end",
+                    file: "src/fetch_selected_emails_data.js"
+                }, function() {
+                    chrome.tabs.sendMessage(tabs[0].id, { viewState: viewState }, function(response) {
+                        if (response && response.emails) {
+                            // Use first thread to bring up print view
+                            let tid = response.emails[0].thread_id;
+                            print(url + tid, false, response.emails);
+                        }
+                    });
+                });
+            });
         }
     );
 }
@@ -80,17 +75,18 @@ chrome.browserAction.onClicked.addListener(function(tab) {
             // On a printable email...
             // Print single
             console.log("[PPG][DEBUG] Printing single email.");
-            registerMessageListener(printUrl);
-            chrome.tabs.executeScript({ file: "lib/helper.js" }, function() {
-                chrome.tabs.executeScript({ runAt: "document_end", file: "src/fetch_selected_emails_data.js" });
-            });
-            // print(printUrl + threadId, true);
+            let viewState = {
+                inThread: true,
+                threadId: threadId.toLowerCase()
+            };
+            printEmails(printUrl, viewState);
         } else if (inGmail(urlElements)) {
             console.log("[PPG][DEBUG] Printing multiple emails.");
-            registerMessageListener(printUrl);
-            chrome.tabs.executeScript({ file: "lib/helper.js" }, function() {
-                chrome.tabs.executeScript({ runAt: "document_end", file: "src/fetch_selected_emails_data.js" });
-            });
+            let viewState = {
+                inThread: false,
+                threadId: ""
+            };
+            printEmails(printUrl, viewState);
         } else {
             // Just go to Gmail
             printUrl = "https://mail.google.com";

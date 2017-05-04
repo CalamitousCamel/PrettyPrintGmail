@@ -73,7 +73,7 @@ function makeRequestAsync(_link, method, disable_cache) {
                 })
                 .fail(function(jqxhr, textStatus, errorThrown) {
                     console.error("Request Failed", errorThrown);
-                    reject(JSON.stringify(jqXHR) + ", Error thrown: " + errorThrown)
+                    reject("Error thrown: " + errorThrown);
                 });
         }
     )

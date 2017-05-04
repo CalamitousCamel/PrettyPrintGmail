@@ -16,7 +16,7 @@
   },
   "background": {
     "scripts": [
-      "lib/helper.js", "src/background.js"
+      "lib/helper.js", "src/fetch_selected_emails_data.js", "src/background.js"
     ],
     "persistent": false
   },
