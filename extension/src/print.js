@@ -26,28 +26,33 @@ function formatEmails(emails) {
     return emails.map(function(email) {
         let subjectLine = "<hr><font size=+1><b>" + email.subject + "</b></font><br>";
         console.log(email);
+        let totalThreads = email.total_threads.length;
         let emailContent = subjectLine + "<font size=-1 color=#777>" +
-            email.total_threads.length + " messages </font> <hr>";
+            totalThreads + " messages </font> <hr>";
         // Messages
         // Have to get keys of email.threads object from total_threads
-        return email.total_threads.reduce(function(acc_emailContent, cur_threadId) {
+        return email.total_threads.reduce(function(acc, threadId) {
             // sender/receiver
-            let message = email.threads[cur_threadId];
-            let fromLine = "<font size=-1><b>" +
+            let message = email.threads[threadId];
+            let fromLine = "<font size=-1><b>From: </b>" +
                 message.from +
-                "</b> [" +
+                " [" +
                 message.from_email +
                 "]<br>";
-            let toLine = "To: " +
+            let toLine = "<b>To: </b>" +
                 message.to.slice(1).reduce(function(acc, cur) {
                     return acc.replace("<", "[") + acc.replace(">", "]") + ", " + cur;
                 }, message.to[0]) +
                 "</font><br><br>";
-            return acc_emailContent +
-                fromLine + toLine +
-                message.content_html +
-                "<br><hr><br>";
-        }, emailContent) + "<footer>";
+            return {
+                emailContent: acc.emailContent +
+                    fromLine + toLine +
+                    message.content_html +
+                    "<br><font size=-1 color=#777>" + acc.messageCount + " / " + totalThreads +
+                    "</font><br><hr><br>",
+                messageCount: acc.messageCount + 1
+            };
+        }, { emailContent: emailContent, messageCount: 1 }).emailContent + "<footer>";
     });
 }
 
