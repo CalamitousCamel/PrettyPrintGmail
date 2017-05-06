@@ -3,10 +3,24 @@
   "short_name": "PrettyPrint",
   "description": "Cleans up printing for Gmail.",
   "version": "1.2.7",
+  "web_accessible_resources": [
+    "src/print.js"
+  ],
   "permissions": [
     "activeTab",
     "https://mail.google.com/mail/u/*",
     "tabs"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://mail.google.com/mail/u/*view=pt*&msg=*"
+      ],
+      "js": [
+        "src/print_native.js"
+      ],
+      "run_at": "document_end"
+    }
   ],
   "icons": {
     "16": "assets/icon-16.png",

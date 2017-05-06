@@ -1,25 +1,6 @@
 'use strict';
 
-console.log("[PPG][DEBUG] print.js ran");
-
-var bodycontainer = document.getElementsByClassName("bodycontainer")[0];
-document.head.insertAdjacentElement('afterend', bodycontainer)
-
-var e = document.body;
-e.parentNode.removeChild(e);
-
-var maincontent = document.getElementsByClassName("maincontent")[0];
-while (maincontent.firstChild) {
-    maincontent.removeChild(maincontent.firstChild);
-}
-while (bodycontainer.firstChild != maincontent) {
-    bodycontainer.removeChild(bodycontainer.firstChild);
-}
-
-var sheet = window.document.styleSheets[0]
-sheet.insertRule('.bodycontainer { font-size:13px } ', sheet.cssRules.length);
-sheet.insertRule('hr {border-top: 1px dashed #8c8b8b;} ', sheet.cssRules.length);
-sheet.insertRule('@media print { footer {page-break-after: always;} } ', sheet.cssRules.length);
+console.log("[PPG][DEBUG] print.js ran at " + new Date().getTime());
 
 // Returns relevant HTML content for emails
 function formatEmails(emails) {
@@ -48,7 +29,8 @@ function formatEmails(emails) {
                 emailContent: acc.emailContent +
                     fromLine + toLine +
                     message.content_html +
-                    "<br><font size=-1 color=#777>" + acc.messageCount + " / " + totalThreads +
+                    "<br><br><font size=-2 color=#777>" +
+                    acc.messageCount + " / " + totalThreads +
                     "</font><br><hr><br>",
                 messageCount: acc.messageCount + 1
             };
@@ -57,7 +39,7 @@ function formatEmails(emails) {
 }
 
 function insertInPage(emails) {
-    let body = document.getElementsByClassName("bodycontainer")[0];
+    let body = document.body;
     emails.map(function(emailHTML) {
         body.insertAdjacentHTML('beforeend', emailHTML);
     })

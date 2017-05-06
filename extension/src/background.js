@@ -23,22 +23,24 @@ function get_current_tab_url(callback) {
     })
 };
 
-function print(url, active, emails) {
-    // console.log("[PPG][DEBUG] Print called in background js");
+function print(active, emails) {
+    console.log("[PPG][DEBUG] Print called in background js");
     chrome.tabs.create({
-        url: url,
+        url: chrome.extension.getURL('printpage.html'),
         active: active
     }, function(newTab) {
         chrome.tabs.executeScript(newTab.id, {
-            runAt: "document_end",
-            file: 'src/print.js'
+            code: "",
+            runAt: 'document_end'
         }, function() {
-            chrome.tabs.sendMessage(newTab.id, { emails: emails }, function response() {});
+            console.log("Sending message at " + new Date().getTime());
+            chrome.tabs.sendMessage(newTab.id, { emails: emails });
+
         });
     });
 }
 
-function printEmails(url, viewState) {
+function printEmails(viewState) {
     chrome.tabs.query({
             active: true,
             lastFocusedWindow: true
@@ -51,9 +53,7 @@ function printEmails(url, viewState) {
                 }, function() {
                     chrome.tabs.sendMessage(tabs[0].id, { viewState: viewState }, function(response) {
                         if (response && response.emails) {
-                            // Use first thread to bring up print view
-                            let tid = response.emails[0].thread_id;
-                            print(url + tid, false, response.emails);
+                            print(false, response.emails);
                         }
                     });
                 });
@@ -70,7 +70,6 @@ chrome.browserAction.onClicked.addListener(function(tab) {
         var positionOfInboxId = 5;
         var inboxNumber = urlElements[positionOfInboxId];
         var canonicalUrl = "https://mail.google.com/mail/u/";
-        var printUrl = canonicalUrl + inboxNumber + "/?view=pt&search=inbox&th=";
         if (isThreadId(threadId.toLowerCase())) {
             // On a printable email...
             // Print single
@@ -79,19 +78,18 @@ chrome.browserAction.onClicked.addListener(function(tab) {
                 inThread: true,
                 threadId: threadId.toLowerCase()
             };
-            printEmails(printUrl, viewState);
+            printEmails(viewState);
         } else if (inGmail(urlElements)) {
             console.log("[PPG][DEBUG] Printing multiple emails.");
             let viewState = {
                 inThread: false,
                 threadId: ""
             };
-            printEmails(printUrl, viewState);
+            printEmails(viewState);
         } else {
             // Just go to Gmail
-            printUrl = "https://mail.google.com";
             chrome.tabs.create({
-                url: printUrl
+                url: "https://mail.google.com"
             });
         }
     })
