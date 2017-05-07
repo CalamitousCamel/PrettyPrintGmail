@@ -1,32 +1,7 @@
-// console.log("[DEBUG][PPG]: In print.js ");
-
-// Helper function to delete all matched nodes + their children
-// function delete_all(collection) {
-//     for (var i = 0; i < collection.length; i++) {
-//         // Delete all children (so sad)
-//         while (collection[i].firstChild) {
-//             collection[i].removeChild(collection[i].firstChild);
-//         }
-//     }
-// }
-
-// // Get...
-// // Gmail header, which (at least for now) is the first table
-// var tables = document.getElementsByTagName("table");
-// // receiver + sender cruft. The email id that shows up next to the name should be enough
-// var receiverSender = document.getElementsByClassName("recipient");
-// // attachment images
-// var attachments = document.getElementsByClassName("att");
-
-// // Remove...
-// tables[0].parentNode.removeChild(tables[0]);
-// delete_all(receiverSender);
-// delete_all(attachments);
-
-// // At the end, force-open print dialog
-// window.print();
-
 'use strict';
+
+/** @define {boolean} */
+var DEV = true;
 
 var bodycontainer = document.getElementsByClassName("bodycontainer")[0];
 document.head.insertAdjacentElement('afterend', bodycontainer)
@@ -90,33 +65,3 @@ function insertInPage(emails) {
         body.insertAdjacentHTML('beforeend', emailHTML);
     })
 }
-
-// var emails = message.emails;
-// console.log("[DEBUG][PPG][print.js] : In print.js onmessage handler");
-// if (emails) {
-//     insertInPage((formatEmails(emails)));
-// }
-// // Check if all images have finished loading
-// let images = document.getElementsByTagName("img");
-// let counter = images.length;
-
-// for (let i = images.length - 1; i >= 0; i--) {
-//     if (images[i].complete) counter--;
-//     else {
-//         images[i].onload = images[i].onerror = function() {
-//             counter--;
-//         }
-//     }
-//     // Invalidate cached image / reload image at this point.
-//     // The onload function is flaky if not called before setting src
-//     // However, I'm confused as to how the image can be incomplete
-//     // and still the onerror function does not fire.
-//     images[i].src += "?" + new Date().getTime();
-// }
-// // Check every 500 ms
-// let interval = setInterval(function() {
-//     if (counter <= 0) {
-//         clearInterval(interval);
-//         window.print();
-//     }
-// }, 500);

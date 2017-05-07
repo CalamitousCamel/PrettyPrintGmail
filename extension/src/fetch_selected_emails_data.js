@@ -1,5 +1,16 @@
 'use strict';
 
+/** @define {boolean} */
+var DEV = true;
+
+/** extern definitions **/
+function contains(container, element){};
+function getIkFromGlobals(globals){};
+function makeRequestAsync(_link, method, disable_cache){};
+function makeRequest(_link, method, disable_cache){};
+function getSelectedThreadIds(){};
+function getGlobals() {};
+
 function extractEmailAddress(str) {
     var regex = /[\+a-z0-9._-]+@[a-z0-9._-]+\.[a-z0-9._-]+/gi;
     var matches = (str) ? str.match(regex) : undefined;

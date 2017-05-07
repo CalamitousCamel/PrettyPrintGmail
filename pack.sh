@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-file="extension/manifest.json"
+file="build/manifest.json"
 version=$(cat "$file" | grep "\"version\"" | cut -d ":" -f2 | cut -d "," -f1 | cut -d "\"" -f2)
 bumped=""
 # If `bump` passed in as argument, increment manifest.json version
@@ -27,6 +27,6 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     echo "Done."
 fi
 
-zip -r "$name-$version".zip extension/
+zip -r "$name-$version".zip build/
 
 

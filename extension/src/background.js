@@ -1,6 +1,12 @@
 'use strict';
 
-let DEV = true;
+/** @define {boolean} */
+var DEV = true;
+
+/** extern definitions **/
+function inGmail(urlElements){};
+
+
 
 // The thread id is a 64 bit hex
 function isThreadId(str) {
@@ -65,10 +71,10 @@ function printEmails(viewState) {
             chrome.browserAction.setBadgeText({ text: "Wait" });
             chrome.browserAction.disable();
             chrome.browserAction.setBadgeBackgroundColor({ color: "black" });
-            chrome.tabs.executeScript({ file: "lib/helper.js" }, function() {
+            chrome.tabs.executeScript({ file: "lib/helper.js" + DEV ? "" : ".min" }, function() {
                 chrome.tabs.executeScript({
                     runAt: "document_end",
-                    file: "src/fetch_selected_emails_data.js"
+                    file: "src/fetch_selected_emails_data.js" + DEV ? "" : ".min"
                 }, function() {
                     chrome.tabs.sendMessage(tabs[0].id, { viewState: viewState }, function(response) {
                         if (response && response.error) {
