@@ -1,17 +1,18 @@
 'use strict';
 
+let DEV = true;
+
 var CONSOLE_STRINGS = {
     print_ran_debug: "[PPG][DEBUG] print.js ran [print.js]",
     onmessage_debug: "[PPG][DEBUG] In onmessage handler [print.js]"
 }
 
-console.debug(CONSOLE_STRINGS.print_ran_debug);
+DEV && console.debug(CONSOLE_STRINGS.print_ran_debug);
 
 // Returns relevant HTML content for emails
 function formatEmails(emails) {
     return emails.map(function(email) {
         let subjectLine = "<hr><font size=+1><b>" + email.subject + "</b></font><br>";
-        console.log(email);
         let totalThreads = email.total_threads.length;
         let emailContent = subjectLine + "<font size=-1 color=#777>" +
             totalThreads + " messages </font> <hr>";
@@ -53,7 +54,7 @@ function insertInPage(emails) {
 chrome.runtime.onMessage.addListener(
     function messageListener(message, sender, sendResponse) {
         var emails = message.emails;
-        console.debug(CONSOLE_STRINGS.onmessage_debug);
+        DEV && console.debug(CONSOLE_STRINGS.onmessage_debug);
         if (emails) {
             // Set title:
             document.title = emails.length + " email" + (emails.length == 1 ? "" : "s");

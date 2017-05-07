@@ -1,5 +1,7 @@
 'use strict';
 
+let DEV = true;
+
 // The thread id is a 64 bit hex
 function isThreadId(str) {
     return /^[0-9a-f]{16}$/i.test(str);
@@ -34,7 +36,7 @@ function get_current_tab_url(callback) {
 };
 
 function print(active, emails) {
-    console.debug(CONSOLE_STRINGS.print_called_debug);
+    DEV && console.debug(CONSOLE_STRINGS.print_called_debug);
     chrome.tabs.create({
         url: chrome.extension.getURL('printpage.html'),
         active: active
@@ -44,7 +46,7 @@ function print(active, emails) {
                 chrome.tabs.sendMessage(newTab.id, { emails: emails });
                 chrome.browserAction.setBadgeText({ text: "Done" });
                 setTimeout(function() {
-                    console.debug(CONSOLE_STRINGS.clearing_badge_debug);
+                    DEV && console.debug(CONSOLE_STRINGS.clearing_badge_debug);
                     chrome.browserAction.setBadgeText({ text: '' });
                     chrome.browserAction.enable();
                 }, 1000);
@@ -76,18 +78,18 @@ function printEmails(viewState) {
                             chrome.browserAction.setBadgeBackgroundColor({ color: "red" });
                             chrome.browserAction.disable();
                             setTimeout(function() {
-                                console.debug(CONSOLE_STRINGS.clearing_badge_debug);
+                                DEV && console.debug(CONSOLE_STRINGS.clearing_badge_debug);
                                 chrome.browserAction.setBadgeText({ text: '' });
                                 chrome.browserAction.enable();
                             }, 3000);
                         } else if (response && response.emails) {
                             print(true, response.emails);
                         } else if (response.none) {
-                            console.warn(CONSOLE_STRINGS.no_emails_warn);
+                            DEV && console.warn(CONSOLE_STRINGS.no_emails_warn);
                             chrome.browserAction.setBadgeText({ text: "None" });
                             chrome.browserAction.enable();
                             setTimeout(function() {
-                                console.debug(CONSOLE_STRINGS.clearing_badge_debug);
+                                DEV && console.debug(CONSOLE_STRINGS.clearing_badge_debug);
                                 chrome.browserAction.setBadgeText({ text: '' });
                             }, 1000);
                         } else {
@@ -112,14 +114,14 @@ chrome.browserAction.onClicked.addListener(function(tab) {
         if (isThreadId(threadId.toLowerCase())) {
             // On a printable email...
             // Print single
-            console.debug(CONSOLE_STRINGS.printing_single_debug);
+            DEV && console.debug(CONSOLE_STRINGS.printing_single_debug);
             let viewState = {
                 inThread: true,
                 threadId: threadId.toLowerCase()
             };
             printEmails(viewState);
         } else if (inGmail(urlElements)) {
-            console.debug(CONSOLE_STRINGS.printing_multiple_debug);
+            DEV && console.debug(CONSOLE_STRINGS.printing_multiple_debug);
             let viewState = {
                 inThread: false,
                 threadId: ""
