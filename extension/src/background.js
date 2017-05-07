@@ -6,13 +6,13 @@ function isThreadId(str) {
 }
 
 var CONSOLE_STRINGS = {
-    clearing_badge_debug: "[PPG][DEBUG] Clearing badge | background.js",
-    print_called_debug: "[PPG][DEBUG] print() | background.js",
-    print_emails_called_debug: "[PPG][DEBUG] printEmails() | background.js",
-    fetch_emails_err: "[PPG][ERR] Error while fetching email data | background.js",
-    no_emails_warn: "[PPG][WARN] No emails selected | background.js",
-    printing_single_debug: "[PPG][DEBUG] Printing single email | background.js",
-    printing_multiple_debug: "[PPG][DEBUG] Printing multiple emails | background.js",
+    "clearing_badge_debug": "[PPG][DEBUG] Clearing badge [background.js]",
+    print_called_debug: "[PPG][DEBUG] print() called [background.js]",
+    print_emails_called_debug: "[PPG][DEBUG] printEmails() called [background.js]",
+    fetch_emails_err: "[PPG][ERR] Error while fetching email data [background.js]",
+    no_emails_warn: "[PPG][WARN] No emails selected [background.js]",
+    printing_single_debug: "[PPG][DEBUG] Printing single email [background.js]",
+    printing_multiple_debug: "[PPG][DEBUG] Printing multiple emails [background.js]",
 }
 
 /**
@@ -70,7 +70,8 @@ function printEmails(viewState) {
                 }, function() {
                     chrome.tabs.sendMessage(tabs[0].id, { viewState: viewState }, function(response) {
                         if (response && response.error) {
-                            console.error(CONSOLE_STRINGS.fetch_emails_err, response.error);
+                            console.error(CONSOLE_STRINGS.fetch_emails_err + " | " +
+                                response.error);
                             chrome.browserAction.setBadgeText({ text: "ERR" });
                             chrome.browserAction.setBadgeBackgroundColor({ color: "red" });
                             chrome.browserAction.disable();
