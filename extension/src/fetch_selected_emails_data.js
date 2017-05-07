@@ -76,10 +76,13 @@ function sanitizeEmailData(get_data) {
         if (contains(data, "gmail_server_error=3141")) {
             error_message += "3141, Unusual Usage error";
         }
-        throw new Error(error_message);
+        return new Promise(function(_, reject) { reject(error_message) });
+    } else {
+        var json = JSON.parse(data);
+        return new Promise(function(resolve, _) {
+            resolve(parseEmailData(json[0]));
+        });
     }
-    var json = JSON.parse(data);
-    return parseEmailData(json[0]);
 }
 
 function getEmailUrl(tid) {
@@ -120,7 +123,6 @@ chrome.runtime.onMessage.addListener(
             getEmailData([viewState.threadId], true)
                 .then((email) => sendResponse({ emails: email }))
                 .catch(function(error) {
-                    // TODO: Show what error happened visually to user
                     console.log(error);
                 });
         } else if ($("[gh='tl'] div[role='checkbox'][aria-checked='true']").length) {
@@ -128,9 +130,10 @@ chrome.runtime.onMessage.addListener(
                 .then((selectedThreadIds) => getEmailData(selectedThreadIds, true)) // get async
                 .then((emails) => sendResponse({ emails: emails }))
                 .catch(function(error) {
-                    console.log(error);
+                    console.error(error);
+                    sendResponse({ error: error });
                 });
-            // console.log("[DEBUG][PPG]: In fetchSelectedEmailsData");
+            console.log("[DEBUG][PPG]: In fetchSelectedEmailsData");
         }
         // Async return
         return true;

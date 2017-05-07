@@ -29,13 +29,17 @@ function print(active, emails) {
         url: chrome.extension.getURL('printpage.html'),
         active: active
     }, function(newTab) {
-        chrome.tabs.executeScript(newTab.id, {
-            code: "",
-            runAt: 'document_end'
-        }, function() {
-            console.log("Sending message at " + new Date().getTime());
-            chrome.tabs.sendMessage(newTab.id, { emails: emails });
-
+        chrome.tabs.onUpdated.addListener(function(tabId, info) {
+            if (info.status == "complete" && tabId == newTab.id) {
+                console.log("got here");
+                chrome.tabs.sendMessage(newTab.id, { emails: emails });
+                chrome.browserAction.setBadgeText({ text: "Done" });
+                setTimeout(function() {
+                    console.log("Clearing badge");
+                    chrome.browserAction.setBadgeText({ text: '' });
+                    chrome.browserAction.enable();
+                }, 1000);
+            }
         });
     });
 }
@@ -46,14 +50,32 @@ function printEmails(viewState) {
             lastFocusedWindow: true
         },
         function(tabs) {
+            // Please wait
+            chrome.browserAction.setBadgeText({ text: "Wait" });
+            chrome.browserAction.disable();
+            chrome.browserAction.setBadgeBackgroundColor({ color: "black" });
             chrome.tabs.executeScript({ file: "lib/helper.js" }, function() {
                 chrome.tabs.executeScript({
                     runAt: "document_end",
                     file: "src/fetch_selected_emails_data.js"
                 }, function() {
                     chrome.tabs.sendMessage(tabs[0].id, { viewState: viewState }, function(response) {
-                        if (response && response.emails) {
-                            print(false, response.emails);
+                        if (response && response.error) {
+                            console.error("Encountered error while fetching email data");
+                            console.error(response.error);
+                            chrome.browserAction.setBadgeText({ text: "ERR" });
+                            chrome.browserAction.setBadgeBackgroundColor({ color: "red" });
+                            chrome.browserAction.disable();
+                            setTimeout(function() {
+                                console.log("Clearing badge");
+                                chrome.browserAction.setBadgeText({ text: '' });
+                                chrome.browserAction.enable();
+                            }, 3000);
+                        } else if (response && response.emails) {
+                            print(true, response.emails);
+                        } else {
+                            chrome.browserAction.setBadgeText({ text: "" });
+                            chrome.browserAction.enable();
                         }
                     });
                 });

@@ -50,6 +50,8 @@ chrome.runtime.onMessage.addListener(
         var emails = message.emails;
         console.log("[DEBUG][PPG][print.js] : In print.js onmessage handler");
         if (emails) {
+            // Set title:
+            document.title = emails.length + " email" + (emails.length == 1 ? "" : "s");
             insertInPage((formatEmails(emails)));
         }
         // Check if all images have finished loading
