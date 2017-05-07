@@ -5,6 +5,16 @@ function isThreadId(str) {
     return /^[0-9a-f]{16}$/i.test(str);
 }
 
+var CONSOLE_STRINGS = {
+    clearing_badge_debug: "[PPG][DEBUG] Clearing badge | background.js",
+    print_called_debug: "[PPG][DEBUG] print() | background.js",
+    print_emails_called_debug: "[PPG][DEBUG] printEmails() | background.js",
+    fetch_emails_err: "[PPG][ERR] Error while fetching email data | background.js",
+    no_emails_warn: "[PPG][WARN] No emails selected | background.js",
+    printing_single_debug: "[PPG][DEBUG] Printing single email | background.js",
+    printing_multiple_debug: "[PPG][DEBUG] Printing multiple emails | background.js",
+}
+
 /**
  * Get the current URL. Citation: https://developer.chrome.com/extensions/getstarted
  * @param {function(string)} callback - called when the URL of the current tab
@@ -24,18 +34,17 @@ function get_current_tab_url(callback) {
 };
 
 function print(active, emails) {
-    console.log("[PPG][DEBUG] Print called in background js");
+    console.debug(CONSOLE_STRINGS.print_called_debug);
     chrome.tabs.create({
         url: chrome.extension.getURL('printpage.html'),
         active: active
     }, function(newTab) {
         chrome.tabs.onUpdated.addListener(function(tabId, info) {
             if (info.status == "complete" && tabId == newTab.id) {
-                console.log("got here");
                 chrome.tabs.sendMessage(newTab.id, { emails: emails });
                 chrome.browserAction.setBadgeText({ text: "Done" });
                 setTimeout(function() {
-                    console.log("Clearing badge");
+                    console.debug(CONSOLE_STRINGS.clearing_badge_debug);
                     chrome.browserAction.setBadgeText({ text: '' });
                     chrome.browserAction.enable();
                 }, 1000);
@@ -61,18 +70,25 @@ function printEmails(viewState) {
                 }, function() {
                     chrome.tabs.sendMessage(tabs[0].id, { viewState: viewState }, function(response) {
                         if (response && response.error) {
-                            console.error("Encountered error while fetching email data");
-                            console.error(response.error);
+                            console.error(CONSOLE_STRINGS.fetch_emails_err, response.error);
                             chrome.browserAction.setBadgeText({ text: "ERR" });
                             chrome.browserAction.setBadgeBackgroundColor({ color: "red" });
                             chrome.browserAction.disable();
                             setTimeout(function() {
-                                console.log("Clearing badge");
+                                console.debug(CONSOLE_STRINGS.clearing_badge_debug);
                                 chrome.browserAction.setBadgeText({ text: '' });
                                 chrome.browserAction.enable();
                             }, 3000);
                         } else if (response && response.emails) {
                             print(true, response.emails);
+                        } else if (response.none) {
+                            console.warn(CONSOLE_STRINGS.no_emails_warn);
+                            chrome.browserAction.setBadgeText({ text: "None" });
+                            chrome.browserAction.enable();
+                            setTimeout(function() {
+                                console.debug(CONSOLE_STRINGS.clearing_badge_debug);
+                                chrome.browserAction.setBadgeText({ text: '' });
+                            }, 1000);
                         } else {
                             chrome.browserAction.setBadgeText({ text: "" });
                             chrome.browserAction.enable();
@@ -95,14 +111,14 @@ chrome.browserAction.onClicked.addListener(function(tab) {
         if (isThreadId(threadId.toLowerCase())) {
             // On a printable email...
             // Print single
-            console.log("[PPG][DEBUG] Printing single email.");
+            console.debug(CONSOLE_STRINGS.printing_single_debug);
             let viewState = {
                 inThread: true,
                 threadId: threadId.toLowerCase()
             };
             printEmails(viewState);
         } else if (inGmail(urlElements)) {
-            console.log("[PPG][DEBUG] Printing multiple emails.");
+            console.debug(CONSOLE_STRINGS.printing_multiple_debug);
             let viewState = {
                 inThread: false,
                 threadId: ""
@@ -128,6 +144,6 @@ chrome.runtime.onInstalled.addListener(function(details) {
         }
     } else if (details.reason == "update") {
         var thisVersion = chrome.runtime.getManifest().version;
-        console.log("[PPG][INFO] Updated from " + details.previousVersion + " to " + thisVersion + "!");
+        console.info("[PPG][INFO] Updated from " + details.previousVersion + " to " + thisVersion + "!");
     }
 });

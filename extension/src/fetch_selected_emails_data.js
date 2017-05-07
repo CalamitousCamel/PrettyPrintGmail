@@ -96,7 +96,9 @@ function getEmailUrl(tid) {
 function getEmailDatum(tid, async) {
     var url = getEmailUrl(tid);
     if (url == null) {
-        throw new Error("threadId " + tid + " is not valid.");
+        return new Promise(function(_, reject) {
+            reject("threadId " + tid + " is not valid.")
+        });
     }
     if (async) {
         return makeRequestAsync(url, "GET")
@@ -133,7 +135,8 @@ chrome.runtime.onMessage.addListener(
                     console.error(error);
                     sendResponse({ error: error });
                 });
-            console.log("[DEBUG][PPG]: In fetchSelectedEmailsData");
+        } else {
+            sendResponse({ none: true });
         }
         // Async return
         return true;

@@ -1,6 +1,11 @@
 'use strict';
 
-console.log("[PPG][DEBUG] print.js ran at " + new Date().getTime());
+var CONSOLE_STRINGS = {
+    print_ran_debug: "[PPG][DEBUG] print.js ran | print.js",
+    onmessage_debug: "[PPG][DEBUG] In onmessage handler | print.js"
+}
+
+console.debug(CONSOLE_STRINGS.print_ran_debug);
 
 // Returns relevant HTML content for emails
 function formatEmails(emails) {
@@ -48,7 +53,7 @@ function insertInPage(emails) {
 chrome.runtime.onMessage.addListener(
     function messageListener(message, sender, sendResponse) {
         var emails = message.emails;
-        console.log("[DEBUG][PPG][print.js] : In print.js onmessage handler");
+        console.debug(CONSOLE_STRINGS.onmessage.debug);
         if (emails) {
             // Set title:
             document.title = emails.length + " email" + (emails.length == 1 ? "" : "s");
