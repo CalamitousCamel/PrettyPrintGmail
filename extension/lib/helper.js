@@ -44,7 +44,10 @@ function getCurrentPage(hash) {
     if (hashPart.match(/\/[0-9a-f]{16,}$/gi)) {
         return "email";
     }
-    var isTwopart = (hashPart.indexOf("search/") === 0 || hashPart.indexOf("category/") === 0 || hashPart.indexOf("label/") === 0);
+    var isTwopart = (hashPart.indexOf("search/") === 0 ||
+            hashPart.indexOf("category/") === 0 ||
+            hashPart.indexOf("label/") === 0);
+
     var result = null;
     if (!isTwopart) {
         result = hashPart.split("/").shift();
@@ -60,23 +63,39 @@ function makeRequestAsync(_link, method, disable_cache) {
     var link = decodeURIComponent(_link.replace(/%23/g, "#-#-#"));
     method = method || "GET";
     link = encodeURI(link).replace(/#-#-#/gi, "%23");
-    var config = { type: method, url: link, async: true, dataType: "text" };
-    if (disable_cache) {
-        config.cache = false;
-    }
 
     return new Promise(
         function(resolve, reject) {
-            $.ajax(config)
-                .done(function(data, textStatus, jqxhr) {
-                    resolve(jqxhr.responseText);
-                })
-                .fail(function(jqxhr, textStatus, errorThrown) {
-                    console.error("Request Failed", errorThrown);
-                    reject("Error thrown: " + errorThrown);
-                });
+
+    let xmlhttp = new XMLHttpRequest();
+
+    xmlhttp.onreadystatechange = function() {
+        if (xmlhttp.readyState == XMLHttpRequest.DONE ) {
+           if (xmlhttp.status == 200) {
+            resolve(xmlhttp.responseText);
+           }
+           else {
+            console.error("Request Failed ", xmlhttp.statusText);
+               reject('Error thrown: ' + xmlhttp.statusText);
+           }
         }
-    )
+    };
+
+    xmlhttp.open(method, link, true);
+    xmlhttp.send();
+});
+
+
+    //         $.ajax(config)
+    //             .done(function(data, textStatus, jqxhr) {
+    //                 resolve(jqxhr.responseText);
+    //             })
+    //             .fail(function(jqxhr, textStatus, errorThrown) {
+    //                 console.error("Request Failed", errorThrown);
+    //                 reject("Error thrown: " + errorThrown);
+    //             });
+    //     }
+    // )
 };
 
 function getGlobals() {
@@ -187,8 +206,4 @@ function getVisibleEmails() {
 
 function contains(container, element) {
     return container.indexOf(element) > -1;
-}
-
-function inGmail(urlElements) {
-    return contains(urlElements, "mail.google.com");
 }

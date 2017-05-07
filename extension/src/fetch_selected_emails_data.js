@@ -4,12 +4,19 @@
 var DEV = true;
 
 /** extern definitions **/
-function contains(container, element){};
-function getIkFromGlobals(globals){};
-function makeRequestAsync(_link, method, disable_cache){};
-function makeRequest(_link, method, disable_cache){};
-function getSelectedThreadIds(){};
-function getGlobals() {};
+if (!DEV) {
+    function contains(container, element) {};
+
+    function getIkFromGlobals(globals) {};
+
+    function makeRequestAsync(_link, method, disable_cache) {};
+
+    function makeRequest(_link, method, disable_cache) {};
+
+    function getSelectedThreadIds() {};
+
+    function getGlobals() {};
+}
 
 function extractEmailAddress(str) {
     var regex = /[\+a-z0-9._-]+@[a-z0-9._-]+\.[a-z0-9._-]+/gi;
@@ -68,8 +75,8 @@ function parseEmailData(email_data) {
             // data.threads[x[1]].reply_to = getReplyTo(x[13]);
             data.threads[x[1]].labels = x[9];
 
-            try { // jQuery will sometime fail to parse x[13][6], if so, putting the raw HTML
-                data.threads[x[1]].content_plain = x[13] ? $(x[13][6]).text() : x[8];
+            try { // Sometime fail to parse x[13][6], if so, putting the raw HTML
+                data.threads[x[1]].content_plain = x[13] ? document.querySelector(x[13][6]).text() : x[8];
             } catch (e) {
                 data.threads[x[1]].content_plain = x[13] ? x[13][6] : x[8];
             }
@@ -138,7 +145,7 @@ chrome.runtime.onMessage.addListener(
                 .catch(function(error) {
                     console.log(error);
                 });
-        } else if ($("[gh='tl'] div[role='checkbox'][aria-checked='true']").length) {
+        } else if (document.querySelectorAll("[gh='tl'] div[role='checkbox'][aria-checked='true']").length) {
             getSelectedThreadIds()
                 .then((selectedThreadIds) => getEmailData(selectedThreadIds, true)) // get async
                 .then((emails) => sendResponse({ emails: emails }))
