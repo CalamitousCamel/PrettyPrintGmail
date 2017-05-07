@@ -9,6 +9,7 @@ Helper functions that are small enough to be duplicated
 function contains(container, element) {
     return container.indexOf(element) > -1;
 }
+
 function inGmail(urlElements) {
     return contains(urlElements, "mail.google.com");
 }
@@ -77,38 +78,36 @@ function printEmails(viewState) {
             chrome.browserAction.disable();
             chrome.browserAction.setBadgeBackgroundColor({ color: "black" });
             console.log();
-            chrome.tabs.executeScript({ file: "lib/helper.js" + (DEV ? "" : ".min") }, function() {
-                chrome.tabs.executeScript({
-                    runAt: "document_end",
-                    file: "src/fetch_selected_emails_data.js" + (DEV ? "" : ".min")
-                }, function() {
-                    chrome.tabs.sendMessage(tabs[0].id, { viewState: viewState }, function(response) {
-                        if (response && response.error) {
-                            console.error(CONSOLE_STRINGS.fetch_emails_err)
-                            console.error(response.error);
-                            chrome.browserAction.setBadgeText({ text: "ERR" });
-                            chrome.browserAction.setBadgeBackgroundColor({ color: "red" });
-                            chrome.browserAction.disable();
-                            setTimeout(function() {
-                                DEV && console.debug(CONSOLE_STRINGS.clearing_badge_debug);
-                                chrome.browserAction.setBadgeText({ text: '' });
-                                chrome.browserAction.enable();
-                            }, 3000);
-                        } else if (response && response.emails) {
-                            print(true, response.emails);
-                        } else if (response && response.none) {
-                            DEV && console.warn(CONSOLE_STRINGS.no_emails_warn);
-                            chrome.browserAction.setBadgeText({ text: "None" });
+            chrome.tabs.executeScript({
+                runAt: "document_end",
+                file: "src/fetch_selected_emails_data.js" + (DEV ? "" : ".min")
+            }, function() {
+                chrome.tabs.sendMessage(tabs[0].id, { viewState: viewState }, function(response) {
+                    if (response && response.error) {
+                        console.error(CONSOLE_STRINGS.fetch_emails_err)
+                        console.error(response.error);
+                        chrome.browserAction.setBadgeText({ text: "ERR" });
+                        chrome.browserAction.setBadgeBackgroundColor({ color: "red" });
+                        chrome.browserAction.disable();
+                        setTimeout(function() {
+                            DEV && console.debug(CONSOLE_STRINGS.clearing_badge_debug);
+                            chrome.browserAction.setBadgeText({ text: '' });
                             chrome.browserAction.enable();
-                            setTimeout(function() {
-                                DEV && console.debug(CONSOLE_STRINGS.clearing_badge_debug);
-                                chrome.browserAction.setBadgeText({ text: '' });
-                            }, 1000);
-                        } else {
-                            chrome.browserAction.setBadgeText({ text: "" });
-                            chrome.browserAction.enable();
-                        }
-                    });
+                        }, 3000);
+                    } else if (response && response.emails) {
+                        print(true, response.emails);
+                    } else if (response && response.none) {
+                        DEV && console.warn(CONSOLE_STRINGS.no_emails_warn);
+                        chrome.browserAction.setBadgeText({ text: "None" });
+                        chrome.browserAction.enable();
+                        setTimeout(function() {
+                            DEV && console.debug(CONSOLE_STRINGS.clearing_badge_debug);
+                            chrome.browserAction.setBadgeText({ text: '' });
+                        }, 1000);
+                    } else {
+                        chrome.browserAction.setBadgeText({ text: "" });
+                        chrome.browserAction.enable();
+                    }
                 });
             });
         }
