@@ -676,5 +676,5 @@ Public License instead of this License.  But first, please read
 
 ---
 
-This product uses functions adapted from Gmail.js, which is available under an
+This product uses some helper functions adapted from Gmail.js, which is available under an
 "MIT" license. For details, see https://github.com/KartikTalwar/gmail.js.
