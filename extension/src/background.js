@@ -23,7 +23,7 @@ var CONSOLE_STRINGS = {
     "clearing_badge_debug": "[PPG][DEBUG] Clearing badge [background.js]",
     print_called_debug: "[PPG][DEBUG] print() called [background.js]",
     print_emails_called_debug: "[PPG][DEBUG] printEmails() called [background.js]",
-    fetch_emails_err: "[PPG][ERR] Error while fetching email data [background.js]",
+    fetch_emails_err: "[PPG][ERR] Error while fetching/cleaning email data [background.js]",
     no_emails_warn: "[PPG][WARN] No emails selected [background.js]",
     printing_single_debug: "[PPG][DEBUG] Printing single email [background.js]",
     printing_multiple_debug: "[PPG][DEBUG] Printing multiple emails [background.js]",
@@ -49,13 +49,14 @@ function get_current_tab_url(callback) {
 
 function print(active, emails) {
     DEV && console.debug(CONSOLE_STRINGS.print_called_debug);
+    DEV && console.debug(emails);
     chrome.tabs.create({
         url: chrome.extension.getURL('printpage.html'),
         active: active
     }, function(newTab) {
         chrome.tabs.onUpdated.addListener(function(tabId, info) {
             if (info.status == "complete" && tabId == newTab.id) {
-                chrome.tabs.sendMessage(newTab.id, { emails: emails });
+                chrome.tabs.sendMessage(newTab.id, { 'emails': emails });
                 chrome.browserAction.setBadgeText({ text: "Done" });
                 setTimeout(function() {
                     DEV && console.debug(CONSOLE_STRINGS.clearing_badge_debug);
@@ -77,13 +78,12 @@ function printEmails(viewState) {
             chrome.browserAction.setBadgeText({ text: "Wait" });
             chrome.browserAction.disable();
             chrome.browserAction.setBadgeBackgroundColor({ color: "black" });
-            console.log();
             chrome.tabs.executeScript({
                 runAt: "document_end",
                 file: "src/fetch_selected_emails_data.js" + (DEV ? "" : ".min")
             }, function() {
-                chrome.tabs.sendMessage(tabs[0].id, { viewState: viewState }, function(response) {
-                    if (response && response.error) {
+                chrome.tabs.sendMessage(tabs[0].id, { 'viewState': viewState }, function(response) {
+                    if (response && response['error']) {
                         console.error(CONSOLE_STRINGS.fetch_emails_err)
                         console.error(response.error);
                         chrome.browserAction.setBadgeText({ text: "ERR" });
@@ -94,9 +94,9 @@ function printEmails(viewState) {
                             chrome.browserAction.setBadgeText({ text: '' });
                             chrome.browserAction.enable();
                         }, 3000);
-                    } else if (response && response.emails) {
-                        print(true, response.emails);
-                    } else if (response && response.none) {
+                    } else if (response && response['emails']) {
+                        print(true, response['emails']);
+                    } else if (response && response['none']) {
                         DEV && console.warn(CONSOLE_STRINGS.no_emails_warn);
                         chrome.browserAction.setBadgeText({ text: "None" });
                         chrome.browserAction.enable();
@@ -127,15 +127,15 @@ chrome.browserAction.onClicked.addListener(function(tab) {
             // Print single
             DEV && console.debug(CONSOLE_STRINGS.printing_single_debug);
             let viewState = {
-                inThread: true,
-                threadId: threadId.toLowerCase()
+                'inThread': true,
+                'threadId': threadId.toLowerCase()
             };
             printEmails(viewState);
         } else if (inGmail(urlElements)) {
             DEV && console.debug(CONSOLE_STRINGS.printing_multiple_debug);
             let viewState = {
-                inThread: false,
-                threadId: ""
+                'inThread': false,
+                'threadId': ""
             };
             printEmails(viewState);
         } else {
@@ -158,6 +158,6 @@ chrome.runtime.onInstalled.addListener(function(details) {
         }
     } else if (details.reason == "update") {
         var thisVersion = chrome.runtime.getManifest().version;
-        console.info("[PPG][INFO] Updated from " + details.previousVersion + " to " + thisVersion + "!");
+        console.info("[PPG][INFO] Updated from " + details['previousVersion'] + " to " + thisVersion + "!");
     }
 });

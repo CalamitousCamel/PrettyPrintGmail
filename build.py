@@ -31,7 +31,7 @@ def minify_js(dir, subdir):
     for filename in get_js_files(dir + subdir):
         src = '%s%s%s' % (dir, subdir, filename)
         dest = '%s%s%s.min' % (OUTPUT_DIR, subdir, filename)
-        cmd = ("java -jar node_modules/google-closure-compiler/compiler.jar"
+        cmd = ("java -jar node_modules/google-closure-compiler/compiler.jar "
                "--compilation_level ADVANCED_OPTIMIZATIONS "
                "--externs chrome_externs.js "
                "--define 'DEV=false' %s > %s" % (src, dest))
