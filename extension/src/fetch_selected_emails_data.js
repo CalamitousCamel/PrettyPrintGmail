@@ -2,6 +2,11 @@
 
 /** @define {boolean} */
 var DEV = true;
+/** @define {boolean} */
+var NOT_COMPILED = false;
+
+
+var GET_CHECKED_SELECTOR = "[gh='tl'] div[role='checkbox'][aria-checked='true']";
 
 function pickFirst(arr) {
     return arr.map(function(element) {
@@ -14,7 +19,7 @@ function getIndexInParent(node) {
 }
 
 function getSelectedRowsIndices() {
-    let selectedRows = document.querySelectorAll('[gh="tl"] div[role="checkbox"][aria-checked="true"]');
+    let selectedRows = document.querySelectorAll(GET_CHECKED_SELECTOR);
     // Get indices in table
     return Array.from(selectedRows).map(function(row) {
         return getIndexInParent(row.parentNode.parentNode);
@@ -29,7 +34,8 @@ function zipWithIndices(arr, indices) {
 
 function getSelectedThreadIds() {
     return getVisibleEmails()
-        .then((emails) => zipWithIndices(emails, getSelectedRowsIndices()))
+        .then((emails) => zipWithIndices(emails,
+            getSelectedRowsIndices()));
 }
 
 /*
@@ -129,14 +135,14 @@ function makeRequest(_link, method, disable_cache) {
 };
 
 function getVisibleEmails_url() {
-    var page = getCurrentPage();
+    var page = getCurrentPage(null);
     var ik = getIkFromGlobals(getGlobals());
     var url = window.location.origin + window.location.pathname + "?ui=2&ik=" + ik + "&view=tl&num=120&rt=1";
 
     var start = document.querySelectorAll(".aqK:not([hidden]) .Dj")[0].firstChild.textContent.replace(",", "").replace(".", "");
 
     if (start) {
-        start = parseInt(start - 1);
+        start = parseInt(start - 1, 10); // decimal system
         url += "&start=" + start +
             "&sstart=" + start;
     } else {
@@ -197,7 +203,7 @@ function getVisibleEmails_clean(get_data) {
 
 function getVisibleEmails() {
     var url = getVisibleEmails_url();
-    return makeRequestAsync(url, "GET")
+    return makeRequestAsync(url, "GET", false) // enable cache
         .then((get_data) => getVisibleEmails_clean(get_data))
 }
 
@@ -308,10 +314,17 @@ function getEmailDatum(tid, async) {
         });
     }
     if (async) {
-        return makeRequestAsync(url, "GET")
-            .then((get_data) => sanitizeEmailData(get_data));
+        return makeRequestAsync(url, "GET", false) // enable cache
+            .then((get_data) => sanitizeEmailData(get_data))
+            .catch((error) => {
+                // Two possible causes of error
+                // Request (500), or server error in response
+                DEV && console.debug(error);
+                DEV && console.debug("Retrying for " + tid);
+                return getEmailDatum(tid, async);
+            });
     } else {
-        return sanitizeEmailData(makeRequest(url, "GET"));
+        return sanitizeEmailData(makeRequest(url, "GET", false)); // enable cache
     }
 }
 
@@ -334,7 +347,7 @@ chrome.runtime.onMessage.addListener(
                 .catch(function(error) {
                     console.log(error);
                 });
-        } else if (document.querySelectorAll("[gh='tl'] div[role='checkbox'][aria-checked='true']").length) {
+        } else if (document.querySelectorAll(GET_CHECKED_SELECTOR).length) {
             getSelectedThreadIds()
                 .then((selectedThreadIds) => getEmailData(selectedThreadIds, true)) // get async
                 .then((emails) => sendResponse({ 'emails': emails }))

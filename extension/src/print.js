@@ -2,6 +2,8 @@
 
 /** @define {boolean} */
 var DEV = true;
+/** @define {boolean} */
+var NOT_COMPILED = false;
 
 var CONSOLE_STRINGS = {
     print_ran_debug: "[PPG][DEBUG] print.js ran [print.js]",
@@ -54,7 +56,6 @@ function insertInPage(emails) {
     emails.map(function(emailHTML) {
         DEV && console.debug(emailHTML);
         body.innerHTML += emailHTML;
-        // body.appendChild(emailHTML);
     })
 }
 
