@@ -4,7 +4,7 @@
   <img src="/extension-icon-256.png"/>
 </p>
 
-Pretty print Gmail emails. [Chrome extension](https://chrome.google.com/webstore/detail/pretty-print-gmail/gdanfldekhdgkbmdoeapbgbcpfglkflg). Get rid of that clunky Gmail logo and other visual clutter while printing tickets, etc.
+Pretty print Gmail emails. [Chrome extension](https://chrome.google.com/webstore/detail/pretty-print-gmail/gdanfldekhdgkbmdoeapbgbcpfglkflg). Get rid of that clunky Gmail logo and other visual clutter while printing emails.
 
 ## Features and Usage
 
@@ -29,7 +29,7 @@ Simply head on over to the [Chrome Web Store](https://chrome.google.com/webstore
 Just Google Chrome! Isn't the monopolized internet amazing.
 
 ### Known Bugs
-If you have inline images in your emails, they might not be loaded correctly because the cleaned up emails are inserted into a new printing page, so the images won't load because of the same-origin policy. I'm working on this -- in case there is active interest in solving this, I'll work on this more.
+If you have inline images in your emails, they might not be loaded correctly because the cleaned up emails are inserted into a new printing page and this may violate the same-origin policy. I'm working on this - in case there is active interest in solving this issue, I'll work on this more (so please let me know!).
 
 ### Acknowledgements
 Icon credits: Plainicon from www.flaticon.com.
