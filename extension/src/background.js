@@ -85,8 +85,8 @@ function printEmails(viewState) {
             }, function() {
                 chrome.tabs.sendMessage(tabs[0].id, { 'viewState': viewState }, function(response) {
                     if (response && response['error']) {
-                        console.error(CONSOLE_STRINGS.fetch_emails_err)
-                        console.error(response.error);
+                        DEV && console.error(CONSOLE_STRINGS.fetch_emails_err)
+                        DEV && console.error(response.error);
                         chrome.browserAction.setBadgeText({ text: "ERR" });
                         chrome.browserAction.setBadgeBackgroundColor({ color: "red" });
                         chrome.browserAction.disable();

@@ -77,7 +77,7 @@ function makeRequestAsync(_link, method, disable_cache) {
                     if (xmlhttp.status == 200) {
                         resolve(xmlhttp.responseText);
                     } else {
-                        console.error("Request Failed ", xmlhttp.statusText);
+                        DEV && console.error("Request Failed ", xmlhttp.statusText);
                         reject('Error thrown: ' + xmlhttp.statusText);
                     }
                 }
@@ -124,7 +124,8 @@ function makeRequest(_link, method, disable_cache) {
             if (xmlhttp.status == 200) {
                 return (xmlhttp.responseText);
             } else {
-                console.error("Request Failed ", xmlhttp.statusText);
+                DEV && console.error("Request Failed ", xmlhttp.statusText);
+                return xmlhttp.statusText;
             }
         }
 
@@ -345,14 +346,14 @@ chrome.runtime.onMessage.addListener(
             getEmailData([viewState['threadId']], true)
                 .then((email) => sendResponse({ 'emails': email }))
                 .catch(function(error) {
-                    console.log(error);
+                    DEV && console.error(error);
                 });
         } else if (document.querySelectorAll(GET_CHECKED_SELECTOR).length) {
             getSelectedThreadIds()
                 .then((selectedThreadIds) => getEmailData(selectedThreadIds, true)) // get async
                 .then((emails) => sendResponse({ 'emails': emails }))
                 .catch(function(error) {
-                    console.error(error);
+                    DEV && console.error(error);
                     sendResponse({ 'error': error });
                 });
         } else {
