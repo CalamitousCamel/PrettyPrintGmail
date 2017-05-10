@@ -143,7 +143,7 @@ function getVisibleEmails_url() {
     var start = document.querySelectorAll(".aqK:not([hidden]) .Dj")[0].firstChild.textContent.replace(",", "").replace(".", "");
 
     if (start) {
-        start = parseInt(start - 1, 10); // decimal system
+        start = parseInt(start - 1, 10); // decimal system yo (pls shutup closure compiler)
         url += "&start=" + start +
             "&sstart=" + start;
     } else {
@@ -299,16 +299,39 @@ function sanitizeEmailData(get_data) {
     }
 }
 
-function getEmailUrl(tid) {
+function getEmailUrl(tid, single) {
     var ik = getIkFromGlobals(getGlobals());
     return window.location.origin +
         window.location.pathname +
         "?ui=2&ik=" + ik + "&view=cv&th=" +
-        tid + "&msgs=&mb=0&rt=1&search=mbox";
+        tid + "&msgs=" + (single ? tid : "") + "&mb=0&rt=1&search=mbox";
 }
 
-function getEmailDatum(tid, async) {
-    var url = getEmailUrl(tid);
+
+function isProbablyTruncated(thread) {
+    return thread['content_plain'] == thread['content_html'] &&
+        thread['content_html'].length === 80 &&
+        thread['content_html'].slice(77, 80) === "...";
+}
+
+function handleTruncations(cleanData, single) {
+    if (cleanData['total_threads'] && !single) {
+        return Promise.all(
+                cleanData['total_threads'].map(function(tid) {
+                    if (isProbablyTruncated(cleanData['threads'][tid])) {
+                        return getEmailDatum(tid, false, true)
+                            .then((emailDatum) => cleanData['threads'][tid] = emailDatum['threads'][tid])
+                    }
+                })
+            )
+            .then((_) => cleanData);
+    } else {
+        return new Promise((resolve, _) => resolve(cleanData));
+    }
+}
+
+function getEmailDatum(tid, async, single) {
+    let url = getEmailUrl(tid, single);
     if (url == null) {
         return new Promise(function(_, reject) {
             reject("threadId " + tid + " is not valid.")
@@ -317,12 +340,13 @@ function getEmailDatum(tid, async) {
     if (async) {
         return makeRequestAsync(url, "GET", false) // enable cache
             .then((get_data) => sanitizeEmailData(get_data))
+            .then((cleanData) => handleTruncations(cleanData, single))
             .catch((error) => {
                 // Two possible causes of error
                 // Request (500), or server error in response
                 DEV && console.debug(error);
                 DEV && console.debug("Retrying for " + tid);
-                return getEmailDatum(tid, async);
+                return getEmailDatum(tid, async, single);
             });
     } else {
         return sanitizeEmailData(makeRequest(url, "GET", false)); // enable cache
@@ -332,7 +356,7 @@ function getEmailDatum(tid, async) {
 function getEmailData(selectedThreadIds, async) {
     return Promise.all(
         selectedThreadIds.map(function(tid) {
-            return getEmailDatum(tid, async);
+            return getEmailDatum(tid, async, false);
         })
     );
 }
