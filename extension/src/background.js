@@ -2,7 +2,8 @@
 
 /** @define {boolean} */
 var DEV = true;
-
+/** @define {boolean} */
+var NOT_COMPILED = false;
 /**
 Helper functions that are small enough to be duplicated
 */
@@ -80,7 +81,7 @@ function printEmails(viewState) {
             chrome.browserAction.setBadgeBackgroundColor({ color: "black" });
             chrome.tabs.executeScript({
                 runAt: "document_end",
-                file: "src/fetch_selected_emails_data.js" + (DEV ? "" : ".min")
+                file: "src/fetch_selected_emails_data.js" + (NOT_COMPILED ? "" : ".min")
             }, function() {
                 chrome.tabs.sendMessage(tabs[0].id, { 'viewState': viewState }, function(response) {
                     if (response && response['error']) {
