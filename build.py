@@ -27,23 +27,33 @@ def copyover_from_extension(dir, subdir=''):
         shutil.copyfile(src, dest)
 
 
-def minify_js(dir, subdir):
+def minify_js(dir, subdir, DEV):
     for filename in get_js_files(dir + subdir):
         src = '%s%s%s' % (dir, subdir, filename)
         dest = '%s%s%s.min' % (OUTPUT_DIR, subdir, filename)
         cmd = ("java -jar node_modules/google-closure-compiler/compiler.jar "
                "--compilation_level ADVANCED_OPTIMIZATIONS "
                "--externs chrome_externs.js "
-               "--define 'DEV=false' %s > %s" % (src, dest))
+               "--define 'NOT_COMPILED=false' "
+               "--define '%s' "
+               "%s > %s" % (DEV, src, dest))
         print("[build.py] %s" % (cmd))
         os.system(cmd)
         print("[build.py] Removing %s%s%s" % (OUTPUT_DIR, subdir, filename))
         os.remove('%s%s%s' % (OUTPUT_DIR, subdir, filename))
 
-# Start
+# Start -- sketch command line args handling
 bump = False
-if (len(sys.argv) == 2) and sys.argv[1].lower() == 'bump':
+if (len(sys.argv) > 1) and "bump" in sys.argv:
     bump = True
+DEV = reduce(lambda acc, cur:
+             cur if "DEV=" in cur else acc, sys.argv, "DEV=false")
+valOfDEV = DEV.split("DEV=")[1]
+trueOrFalse = ("false" == valOfDEV.lower()) or ("true" == valOfDEV.lower())
+if (not valOfDEV) or (not trueOrFalse):
+    print("Usage of DEV param: DEV=false or DEV=true")
+    sys.exit(1)
+
 
 print("[build.py] Removing %s dir if it exists..." % (OUTPUT_DIR))
 # Remove build folder
@@ -65,7 +75,7 @@ for subdir in ['', 'assets/', 'src/']:
 
 print("[build.py] Minifying .js files...")
 for subdir in ['src/']:
-    minify_js('extension/', subdir)
+    minify_js('extension/', subdir, DEV)
 
 print("[build.py] Editing manifest.json and copying over...")
 # Read in the file
