@@ -9,10 +9,10 @@ Pretty print Gmail emails. [Chrome extension](https://chrome.google.com/webstore
 ## Features and Usage
 
 ### Multiple Printing
-From the main Gmail page, select all the emails you want to print, and press the orange printer extension icon. Alternatively, you can press Alt + P (extension shortcut), but if something is already using that as a shortcut on your computer then it will not work. Print as many emails as you like! If you select too many emails to print, things might slow down for a bit -- please be patient! All the selected emails are compiled into one printing page, and network requests have to be made for each selected thread. 
+From the main Gmail page, select all the emails you want to print, and press the orange printer extension icon. Alternatively, you can press <kbd>Alt + P</kbd> (extension shortcut), but if something is already using that as a shortcut on your computer then it will not work. Print as many emails as you like! If you select too many emails to print, things might slow down for a bit -- please be patient! All the selected emails are compiled into one printing page, and network requests have to be made for each selected thread. 
 
 ### Single Thread Printing
-If you want to pretty print one thread, click on the email. Now press the extension icon / Alt + P. 
+If you want to pretty print one thread, click on the email. Now press the extension icon / <kbd>Alt + P</kbd>. 
 
 If you want to pretty print a **single message** in a long threaded conversation, then this extension supports that as well! Custom styles are inserted for the to-be-printed email. Do the following:
 
