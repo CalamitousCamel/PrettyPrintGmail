@@ -2,6 +2,8 @@
 
 /** @define {boolean} */
 var DEV = true;
+/** @define {boolean} */
+var NOT_COMPILED = false;
 
 let bodycontainer = document.getElementsByClassName("bodycontainer")[0];
 document.head.parentNode.insertBefore(bodycontainer, document.head.nextSibling);
