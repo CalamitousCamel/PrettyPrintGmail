@@ -8,6 +8,7 @@ Pretty print Gmail emails. [Chrome extension](https://chrome.google.com/webstore
 
 <p align="center">
   <img src="/screenshots/screenshot-before.png"/>
+  <br><br>
   <p align="center"><sub>Just. Why would I want this, Gmail.</sub></p>
 </p>
 
@@ -15,6 +16,7 @@ Wouldn't you rather it gave you a nice, clean print view of your emails, the way
 
 <p align="center">
   <img src="/screenshots/screenshot-after.png"/>
+  <br><br>
   <p align="center"><sub>omg so clean!</sub></p>
 </p>
 
@@ -28,12 +30,14 @@ From the main Gmail page, select all the emails you want to print, and press the
 
 <p align="center">
   <img src="/screenshots/screenshot-multiple-printing-before.png"/>
-  <p align="center"><sub>Select multiple emails from the main Gmail page and press extension icon</sub></p>
+  <br><br>
+  <p align="center"><sub><em>Select multiple emails from the main Gmail page and press extension icon</em></sub></p>
 </p>
 
 <p align="center">
   <img src="/screenshots/screenshot-multiple-printing-after.png"/>
-  <p align="center"><sub>All of them are combined in a print view</sub></p>
+  <br><br>
+  <p align="center"><sub><em>All of them are combined in a print view</em></sub></p>
 </p>
 
 Print as many emails as you like! You can print by label, category, etc. 
@@ -52,12 +56,14 @@ If you want to pretty print a **single message** in a long threaded conversation
 
 <p align="center">
   <img src="/screenshots/screenshot-single-printing-before.png"/>
-  <p align="center"><sub>Click on Print button</sub></p>
+  <br><br>
+  <p align="center"><sub><em>Click on Print button</em></sub></p>
 </p>
 
 <p align="center">
   <img src="/screenshots/screenshot-single-printing-after.png"/>
-  <p align="center"><sub>Pretty printed single email!</sub></p>
+  <br><br>
+  <p align="center"><sub><em>Pretty printed single email!</em></sub></p>
 </p>
 
 
@@ -70,7 +76,7 @@ Just Google Chrome!
 ### Donations
 If you use this extension, please consider donating:
 - Bitcoin : [1JRWhcvaR2syKguSeZcQv3CeGqfwFQ49y1](https://blockchain.info/address/1JRWhcvaR2syKguSeZcQv3CeGqfwFQ49y1)
-- PayPal : paypal.me/shivankaul/2
+- PayPal : [paypal.me/shivankaul/2](paypal.me/shivankaul/2)
 
 This project (especially the multiple printing feature) took (takes) a ridiculous amount of time and effort to develop. Your donations help me devote time to features/bug-fixes by having to spend less time earning money to buy oatmeal. Because oatmeal is the best. Oatmeal + yogurt + berries + banana + flaxseed + peanut butter. You're welcome.
 
