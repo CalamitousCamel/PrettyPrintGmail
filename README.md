@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="/extension-icon-128.png"/>
+</p>
+
 # Pretty Print for Gmail
 
 Pretty print Gmail emails. [Chrome extension](https://chrome.google.com/webstore/detail/pretty-print-gmail/gdanfldekhdgkbmdoeapbgbcpfglkflg). Get rid of that clunky Gmail logo and other visual clutter while printing emails.
