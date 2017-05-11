@@ -32,7 +32,7 @@ From the main Gmail page, select all the emails you want to print, and press the
 
 <p align="center">
   <img src="/screenshots/screenshot-multiple-printing-before.png"/>
-  <p align="center"><sub>Select multiple emails from the main Gmail page</sub></p>
+  <p align="center"><sub>Select multiple emails from the main Gmail page and press extension icon</sub></p>
 </p>
 
 <p align="center">
