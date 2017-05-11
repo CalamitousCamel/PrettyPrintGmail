@@ -30,7 +30,9 @@ Then [this extension](https://chrome.google.com/webstore/detail/pretty-print-gma
 ### Multiple Printing
 From the main Gmail page, select all the emails you want to print, and press the extension icon ![orange printer](/extension/assets/icon-16.png?raw=true "extension icon"). Alternatively, you can press <kbd>Alt + P</kbd> (extension shortcut), but if that is overriden by something else then it won't work. 
 
-Print as many emails as you like! If you select too many emails to print, things might slow down for a bit - please be patient!
+Print as many emails as you like! You can print by label, category, etc. 
+
+If you select too many emails to print, things might slow down for a bit - please be patient!
 
 ### Single Thread Printing
 If you want to pretty print one thread, click on the email. Now press the extension icon ![orange printer](/extension/assets/icon-16.png?raw=true "extension icon") or the shortcut <kbd>Alt + P</kbd>. 
