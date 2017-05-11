@@ -22,7 +22,6 @@ Wouldn't you rather it gave you a nice, clean print view of your emails, the way
   <p align="center"><sub>omg so clean!</sub></p>
 </p>
 
-
 Then [this extension](https://chrome.google.com/webstore/detail/pretty-print-gmail/gdanfldekhdgkbmdoeapbgbcpfglkflg) is for you. 
 </*exaggerated-TV-salesperson-voice*> 
 
@@ -31,7 +30,7 @@ Then [this extension](https://chrome.google.com/webstore/detail/pretty-print-gma
 ### Multiple Printing
 From the main Gmail page, select all the emails you want to print, and press the extension icon ![orange printer](/extension/assets/icon-16.png?raw=true "extension icon"). Alternatively, you can press <kbd>Alt + P</kbd> (extension shortcut), but if that is overriden by something else then it won't work. 
 
-Print as many emails as you like! If you select too many emails to print, things might slow down for a bit -- please be patient! All the selected emails are compiled into one printing page, and network requests have to be made for each selected thread. 
+Print as many emails as you like! If you select too many emails to print, things might slow down for a bit - please be patient!
 
 ### Single Thread Printing
 If you want to pretty print one thread, click on the email. Now press the extension icon ![orange printer](/extension/assets/icon-16.png?raw=true "extension icon") or the shortcut <kbd>Alt + P</kbd>. 
@@ -49,7 +48,7 @@ Simply head on over to the [Chrome Web Store](https://chrome.google.com/webstore
 Just Google Chrome! Isn't the monopolized internet amazing.
 
 ### Known Bugs
-If you have inline images in your emails, they might not be loaded correctly because the cleaned up emails are inserted into a new printing page and this may violate the same-origin policy. I'm working on this - in case there is active interest in solving this issue, I'll work on this more (so please let me know!).
+If you have inline images in your emails, they might not be loaded correctly because the cleaned up emails are inserted into a new printing page and this may violate the same-origin policy. I'm working on this - in case there is active interest in solving this issue, I'll work on this, well, more (so please let me know!).
 
 ### Acknowledgements
 Icon credits: Plainicon from www.flaticon.com.
