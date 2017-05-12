@@ -3,25 +3,83 @@
 /** @define {boolean} */
 var DEV = true;
 /** @define {boolean} */
-var NOT_COMPILED = false;
+var NOT_COMPILED = true;
 
 var CONSOLE_STRINGS = {
     print_ran_debug: "[PPG][DEBUG] print.js ran [print.js]",
     onmessage_debug: "[PPG][DEBUG] In onmessage handler [print.js]",
     insert_in_page_debug: "[PPG][DEBUG] In insertInPage [print.js]",
     received_emails_debug: "[PPG][DEBUG] Received emails [print.js]",
+    to_is_messed_up_error: "[PPG][ERROR] One of the 'to's is messed up [print.js]",
 }
 
 DEV && console.debug(CONSOLE_STRINGS.print_ran_debug);
+
+function isString(str) {
+    return (typeof str === 'string') || (str instanceof String);
+}
+
+/**
+    Expects a replacement object with
+    keys: substrings in str to replace
+    values: replacements
+*/
+function replaceMultiple(replaceObj, str) {
+    function replaceInner(replacements, acc) {
+        if (replacements && replacements.length) {
+            let key = replacements[0][0];
+            let value = replacements[0][1];
+            return replaceInner(replacements.slice(1), acc.replace(key, value));
+        } else return acc;
+    }
+    let replacements = Object.keys(replaceObj)
+        .map(key => [key, replaceObj[key]]);
+
+    return replaceInner(replacements, str);
+}
+
+function handleTo(acc, cur) {
+    // Handle type unsafety :(
+    if (Array.isArray(cur)) {
+        return (acc + cur.join(" [")) +
+            "], ";
+    } else if (isString(cur)) {
+        return acc +
+            replaceMultiple({ "<": "[", ">": "]" }, cur) +
+            ", ";
+    }
+    // else error
+    DEV && console.error(CONSOLE_STRINGS.to_is_messed_up_error);
+    DEV && console.error(cur);
+    return cur;
+}
+
+// TO is annoying. Check handleTo for details
+// We have to operate on first element of to
+// array as well so we have to pass the operated
+// upon element as the initialValue to the reduce
+// and start reducing from the 2nd element.
+function getToLine(message) {
+    if (message['to'] && message['to'].length) {
+        let to = "<b>To: </b>";
+        let firstTo = message['to'][0];
+        if (message['to'].length > 1) {
+            return to +
+                message['to'].slice(1).reduce(function(acc, cur) {
+                    if (cur) return handleTo(acc, cur);
+                }, handleTo("", firstTo));
+        } else return to + handleTo("", firstTo);
+    } else return "";
+}
 
 // Returns relevant HTML content for emails
 function formatEmails(emails) {
     return emails.map(function(email) {
         DEV && console.debug(email)
-        let subjectLine = "<hr><font size=+1><b>" + email['subject'] + "</b></font><br>";
+        let subjectLine = "<hr class=dashed><font size=+1><b>" + email['subject'] + "</b></font><br>";
         let totalThreads = email['total_threads'].length;
         let emailContent = subjectLine + "<font size=-1 color=#777>" +
-            totalThreads + " messages </font> <hr>";
+            totalThreads + " messages </font> <hr class=dashed>";
         // Messages
         // Have to get keys of email.threads object from total_threads
         return email['total_threads'].reduce(function(acc, threadId) {
@@ -32,18 +90,14 @@ function formatEmails(emails) {
                 " [" +
                 message['from_email'] +
                 "]<br>";
-            let toLine = "<b>To: </b>" +
-                message['to'].slice(1).reduce(function(acc, cur) {
-                    return acc.replace("<", "[") + acc.replace(">", "]") + ", " + cur;
-                }, (message['to'])[0]) +
-                "</font><br><br>";
+            let divider = "</font><br><hr><br>";
             return {
                 'emailContent': acc['emailContent'] +
-                    fromLine + toLine +
+                    fromLine + getToLine(message) + divider +
                     message['content_html'] +
                     "<br><br><font size=-2 color=#777>" +
                     acc['messageCount'] + " / " + totalThreads +
-                    "</font><br><hr><br>",
+                    "</font><br><hr class=dashed><br>",
                 'messageCount': acc['messageCount'] + 1
             };
         }, { 'emailContent': emailContent, 'messageCount': 1 })['emailContent'] + "<footer>";
@@ -54,7 +108,6 @@ function insertInPage(emails) {
     DEV && console.debug(CONSOLE_STRINGS.insert_in_page_debug);
     let body = document.body;
     emails.map(function(emailHTML) {
-        DEV && console.debug(emailHTML);
         body.innerHTML += emailHTML;
     })
 }

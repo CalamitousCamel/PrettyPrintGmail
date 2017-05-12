@@ -3,7 +3,7 @@
 /** @define {boolean} */
 var DEV = true;
 /** @define {boolean} */
-var NOT_COMPILED = false;
+var NOT_COMPILED = true;
 /**
 Helper functions that are small enough to be duplicated
 */

@@ -3,7 +3,7 @@
 /** @define {boolean} */
 var DEV = true;
 /** @define {boolean} */
-var NOT_COMPILED = false;
+var NOT_COMPILED = true;
 
 
 var GET_CHECKED_SELECTOR = "[gh='tl'] div[role='checkbox'][aria-checked='true']";
