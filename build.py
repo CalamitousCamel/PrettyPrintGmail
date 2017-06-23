@@ -27,16 +27,22 @@ def copyover_from_extension(dir, subdir=''):
         shutil.copyfile(src, dest)
 
 
+def valOfDEV(dev):
+    return DEV.split("DEV=")[1].lower()
+
+
 def minify_js(dir, subdir, DEV):
     for filename in get_js_files(dir + subdir):
         src = '%s%s%s' % (dir, subdir, filename)
         dest = '%s%s%s.min' % (OUTPUT_DIR, subdir, filename)
+        debug_opts = "--debug --formatting=PRETTY_PRINT" if (valOfDEV(DEV) == "true") else ""
         cmd = ("java -jar node_modules/google-closure-compiler/compiler.jar "
                "--compilation_level ADVANCED_OPTIMIZATIONS "
                "--externs chrome_externs.js "
+               "%s "
                "--define 'NOT_COMPILED=false' "
                "--define '%s' "
-               "%s > %s" % (DEV, src, dest))
+               "%s > %s" % (debug_opts, DEV, src, dest))
         print("[build.py] %s" % (cmd))
         os.system(cmd)
         print("[build.py] Removing %s%s%s" % (OUTPUT_DIR, subdir, filename))
@@ -48,8 +54,7 @@ if (len(sys.argv) > 1) and "bump" in sys.argv:
     bump = True
 DEV = reduce(lambda acc, cur:
              cur if "DEV=" in cur else acc, sys.argv, "DEV=false")
-valOfDEV = DEV.split("DEV=")[1]
-trueOrFalse = ("false" == valOfDEV.lower()) or ("true" == valOfDEV.lower())
+trueOrFalse = ("false" == valOfDEV(DEV)) or ("true" == valOfDEV(DEV))
 if (not valOfDEV) or (not trueOrFalse):
     print("Usage of DEV param: DEV=false or DEV=true")
     sys.exit(1)

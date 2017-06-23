@@ -148,8 +148,8 @@ chrome.browserAction.onClicked.addListener(function(tab) {
     })
 });
 
-// Check whether new version is installed
-chrome.runtime.onInstalled.addListener(function(details) {
+// Check whether new version is installed, in prod
+!DEV && chrome.runtime.onInstalled.addListener(function(details) {
     if (details.reason == "install") {
         // First install
         // Set uninstall URL
