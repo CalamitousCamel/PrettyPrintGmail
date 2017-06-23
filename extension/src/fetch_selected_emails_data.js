@@ -5,6 +5,14 @@ var DEV = true;
 /** @define {boolean} */
 var NOT_COMPILED = true;
 
+var CONSOLE_STRINGS = {
+    "enter_onmessage_debug": "[PPG][DEBUG] Entered onmessage handler [fetch_selected_emails_data.js]",
+    "enter_selected_threads_debug": "[PPG][DEBUG] Entered selectedThreadIds func [fetch_selected_emails_data.js]",
+    "enter_selected_indices_debug": "[PPG][DEBUG] Printing selected indices [fetch_selected_emails_data.js]",
+    "visible_emails_debug": "[PPG][DEBUG] Printing visible emails [fetch_selected_emails_data.js]",
+    "visible_emails_url_debug": "[PPG][DEBUG] Printing visible emails URL [fetch_selected_emails_data.js]",
+
+}
 
 var GET_CHECKED_SELECTOR = "[gh='tl'] div[role='checkbox'][aria-checked='true']";
 
@@ -33,9 +41,16 @@ function zipWithIndices(arr, indices) {
 }
 
 function getSelectedThreadIds() {
+    DEV && console.debug(CONSOLE_STRINGS.enter_selected_indices_debug);
+    let selectedIndices = getSelectedRowsIndices();
+    DEV && console.debug(CONSOLE_STRINGS.selected_indices_debug);
+    DEV && console.debug(selectedIndices);
     return getVisibleEmails()
-        .then((emails) => zipWithIndices(emails,
-            getSelectedRowsIndices()));
+        .then((emails) => {
+            DEV && console.debug(CONSOLE_STRINGS.visible_emails_debug);
+            DEV && console.debug(emails);
+            return zipWithIndices(emails, selectedIndices);
+        });
 }
 
 /*
@@ -204,6 +219,8 @@ function getVisibleEmails_clean(get_data) {
 
 function getVisibleEmails() {
     var url = getVisibleEmails_url();
+    DEV && console.debug(CONSOLE_STRINGS.visible_emails_url_debug);
+    DEV && console.debug(url);
     return makeRequestAsync(url, "GET", false) // enable cache
         .then((get_data) => getVisibleEmails_clean(get_data))
 }
@@ -341,6 +358,7 @@ chrome.runtime.onMessage.addListener(
     function messageListener(message, sender, sendResponse) {
         let viewState = message['viewState'];
         let selected_emails = [];
+        DEV && console.debug(CONSOLE_STRINGS.enter_onmessage_debug);
         // Figure out if on thread or in main view
         if (viewState['inThread']) {
             getEmailData([viewState['threadId']], true)
@@ -350,7 +368,7 @@ chrome.runtime.onMessage.addListener(
                 });
         } else if (document.querySelectorAll(GET_CHECKED_SELECTOR).length) {
             getSelectedThreadIds()
-                .then((selectedThreadIds) => getEmailData(selectedThreadIds, true)) // get async
+                .then((selectedThreadIds) => { return getEmailData(selectedThreadIds, true) }) // get async
                 .then((emails) => sendResponse({ 'emails': emails }))
                 .catch(function(error) {
                     DEV && console.error(error);
