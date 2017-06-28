@@ -54,14 +54,19 @@ function handleTo(acc, cur) {
     return cur;
 }
 
-// TO is annoying. Check handleTo for details
-// We have to operate on first element of to
-// array as well so we have to pass the operated
-// upon element as the initialValue to the reduce
-// and start reducing from the 2nd element.
+/*
+ * NOTE: Every line handles starting <br> for itself
+ */
+
+/* TO is annoying. Check handleTo for details
+ * We have to operate on first element of to
+ * array as well so we have to pass the operated
+ * upon element as the initialValue to the reduce
+ * and start reducing from the 2nd element.
+ */
 function getToLine(message) {
     if (message['to'] && message['to'].length) {
-        let to = "<b>To: </b>";
+        let to = "<br><b>To: </b>";
         let firstTo = message['to'][0];
         if (message['to'].length > 1) {
             return to +
@@ -70,6 +75,20 @@ function getToLine(message) {
                 }, handleTo("", firstTo));
         } else return to + handleTo("", firstTo);
     } else return "";
+}
+
+function getDateTime(message) {
+    let datetime = message['datetime'];
+    // if it doesn't exist then insert nothing
+    return datetime ? "<br><b>At: </b>" +  datetime : "";
+}
+
+function getFromLine(message) {
+    return "<font size=-1><b>From: </b>" +
+        message['from'] +
+        " [" +
+        message['from_email'] +
+        "]";
 }
 
 // Returns relevant HTML content for emails
@@ -82,18 +101,19 @@ function formatEmails(emails) {
             totalThreads + " messages </font> <hr class=dashed>";
         // Messages
         // Have to get keys of email.threads object from total_threads
+        // Fold over all threads and combine into one HTML string that 
+        // will be printed.
         return email['total_threads'].reduce(function(acc, threadId) {
             // sender/receiver
             let message = (email['threads'])[threadId];
-            let fromLine = "<font size=-1><b>From: </b>" +
-                message['from'] +
-                " [" +
-                message['from_email'] +
-                "]<br>";
+            let fromLine = getFromLine(message);
+            let toLine = getToLine(message);
+            let dateTime = getDateTime(message);
             let divider = "</font><br><hr><br>";
+
             return {
                 'emailContent': acc['emailContent'] +
-                    fromLine + getToLine(message) + divider +
+                    fromLine + toLine + dateTime + divider +
                     message['content_html'] +
                     "<br><br><font size=-2 color=#777>" +
                     acc['messageCount'] + " / " + totalThreads +
