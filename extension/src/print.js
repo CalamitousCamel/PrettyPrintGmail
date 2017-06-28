@@ -19,7 +19,7 @@ function isString(str) {
     return (typeof str === 'string') || (str instanceof String);
 }
 
-/**
+/*
     Expects a replacement object with
     keys: substrings in str to replace
     values: replacements
@@ -39,7 +39,7 @@ function replaceMultiple(replaceObj, str) {
 }
 
 function handleTo(acc, cur) {
-    // Handle type unsafety :(
+    /* Handle type unsafety :( */
     if (Array.isArray(cur)) {
         return (acc + cur.join(" [")) +
             "], ";
@@ -48,7 +48,7 @@ function handleTo(acc, cur) {
             replaceMultiple({ "<": "[", ">": "]" }, cur) +
             ", ";
     }
-    // else error
+    /* else error */
     DEV && console.error(CONSOLE_STRINGS.to_is_messed_up_error);
     DEV && console.error(cur);
     return cur;
@@ -79,7 +79,7 @@ function getToLine(message) {
 
 function getDateTime(message) {
     let datetime = message['datetime'];
-    // if it doesn't exist then insert nothing
+    /* if it doesn't exist then insert nothing */
     return datetime ? "<br><b>At: </b>" +  datetime : "";
 }
 
@@ -91,7 +91,7 @@ function getFromLine(message) {
         "]";
 }
 
-// Returns relevant HTML content for emails
+/* Returns relevant HTML content for emails */
 function formatEmails(emails) {
     return emails.map(function(email) {
         DEV && console.debug(email)
@@ -99,10 +99,12 @@ function formatEmails(emails) {
         let totalThreads = email['total_threads'].length;
         let emailContent = subjectLine + "<font size=-1 color=#777>" +
             totalThreads + " messages </font> <hr class=dashed>";
-        // Messages
-        // Have to get keys of email.threads object from total_threads
-        // Fold over all threads and combine into one HTML string that 
-        // will be printed.
+
+        /* Messages
+         * Have to get keys of email.threads object from total_threads
+         * Fold over all threads and combine into one HTML string that 
+         * will be printed.
+         */
         return email['total_threads'].reduce(function(acc, threadId) {
             // sender/receiver
             let message = (email['threads'])[threadId];
@@ -137,11 +139,11 @@ chrome.runtime.onMessage.addListener(
         let emails = message['emails'];
         DEV && console.debug(CONSOLE_STRINGS.onmessage_debug);
         if (emails) {
-            // Set title:
+            /* Set title: */
             document.title = emails.length + " email" + (emails.length == 1 ? "" : "s");
             insertInPage((formatEmails(emails)));
         }
-        // Check if all images have finished loading
+        /* Check if all images have finished loading */
         let images = document.getElementsByTagName("img");
         let counter = images.length;
 
@@ -152,13 +154,14 @@ chrome.runtime.onMessage.addListener(
                     counter--;
                 }
             }
-            // Invalidate cached image / reload image at this point.
-            // The onload function is flaky if not called before setting src
-            // However, I'm confused as to how the image can be incomplete
-            // and still the onerror function does not fire.
+            /* Invalidate cached image / reload image at this point.
+             * The onload function is flaky if not called before setting src
+             * However, I'm confused as to how the image can be incomplete
+             * and still the onerror function does not fire.
+             */
             images[i].src += "?" + new Date().getTime();
         }
-        // Check every 500 ms
+        /* Check every 500 ms */
         let interval = setInterval(function() {
             if (counter <= 0) {
                 clearInterval(interval);
