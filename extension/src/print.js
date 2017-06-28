@@ -111,6 +111,7 @@ function formatEmails(emails) {
 >>>>>>> e3e3b24... Fix bugs and retructure fetching
          * will be printed.
          */
+
         return email['total_threads'].reduce(function(acc, threadId) {
             // sender/receiver
             let message = (email['threads'])[threadId];
