@@ -21,6 +21,7 @@ function isThreadId(str) {
 }
 
 var CONSOLE_STRINGS = {
+    update_info: "[PrettyPrintGmail] Updated extension to " + chrome.runtime.getManifest().version + "!",
     clearing_badge_debug: "[PrettyPrintGmail] Clearing badge",
     print_called_debug: "[PrettyPrintGmail] print() called",
     print_emails_called_debug: "[PrettyPrintGmail] printEmails() called",
@@ -31,7 +32,7 @@ var CONSOLE_STRINGS = {
     fetched_emails_debug: "[PrettyPrintGmail] Fetched emails successfully",
     fetched_emails_no_response_err: "[PrettyPrintGmail] No response from fetched emails",
     fetched_emails_invalid_response_err: "[PrettyPrintGmail] Invalid response from fetched emails",
-    reloaded_ext_debug: "[PrettyPrintGmail] Reloaded extension",
+    reloaded_ext_debug: "---- [PrettyPrintGmail] Reloaded extension at ---- " + (new Date().toLocaleString()),
 }
 
 /**
@@ -204,16 +205,14 @@ chrome.browserAction.onClicked.addListener(function(tab) {
 
 /* Check whether new version is installed */
 chrome.runtime.onInstalled.addListener(function(details) {
-
     if (details.reason == "install") {
         /* If first install, set uninstall URL */
         var uninstallGoogleFormLink = 'https://docs.google.com/forms/d/e/1FAIpQLSeKS-A4VWmXGnKc6jEqXpBSyjCuZ5Ot5ceTGyXuqIOxEbduHQ/viewform';
         if (chrome.runtime.setUninstallURL) {
             !DEV && chrome.runtime.setUninstallURL(uninstallGoogleFormLink);
-            DEV && console.debug(CONSOLE_STRINGS.reloaded_ext_debug);
         }
     } else if (details.reason == "update") {
-        var thisVersion = chrome.runtime.getManifest().version;
-        console.info("[PPG][INFO] Updated from " + details['previousVersion'] + " to " + thisVersion + "!");
+        !DEV && console.info(CONSOLE_STRINGS.update_info);
+        DEV && console.debug(CONSOLE_STRINGS.reloaded_ext_debug);
     }
 });

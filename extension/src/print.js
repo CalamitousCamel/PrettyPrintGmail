@@ -20,10 +20,15 @@ function isString(str) {
     return (typeof str === 'string') || (str instanceof String);
 }
 
+function contains(container, element) {
+    return container.indexOf(element) > -1;
+}
+
 /*
     Expects a replacement object with
     keys: substrings in str to replace
     values: replacements
+    DEPRECATED
 */
 function replaceMultiple(replaceObj, str) {
     function replaceInner(replacements, acc) {
@@ -42,11 +47,11 @@ function replaceMultiple(replaceObj, str) {
 function handleTo(acc, cur) {
     /* Handle type unsafety :( */
     if (Array.isArray(cur)) {
-        return (acc + cur.join(" [")) +
-            "], ";
+        return (acc + cur.join(' &lt;')) +
+            '&gt;, ';
     } else if (isString(cur)) {
         return acc +
-            replaceMultiple({ "<": "[", ">": "]" }, cur) +
+            escapeWithRegex(cur) +
             ", ";
     }
     /* else error */
@@ -55,6 +60,7 @@ function handleTo(acc, cur) {
     DEV && console.debug(cur);
     return cur;
 }
+
 
 /*
  * NOTE: Every line handles starting <br> for itself
@@ -82,22 +88,48 @@ function getToLine(message) {
 function getDateTime(message) {
     let datetime = message['datetime'];
     /* if it doesn't exist then insert nothing */
-    return datetime ? "<br><b>At: </b>" +  datetime : "";
+    return datetime ? "<br><b>At: </b>" + datetime : "";
 }
 
 function getFromLine(message) {
     return "<font size=-1><b>From: </b>" +
         message['from'] +
-        " [" +
+        ' &lt;' +
         message['from_email'] +
-        "]";
+        '&gt;';
+}
+
+function getSubjectLineCSSized(subject) {
+    return "<hr class=dashed><font size=+1><b>" +
+        subject + "</b></font><br>";
+}
+
+function escapeWithRegex(s) {
+    return s.replace(/[&"<>]/g, function (c) {
+        return {
+            '&': "&amp;",
+            '"': "&quot;",
+            '<': "&lt;",
+            '>': "&gt;"
+        }[c];
+    });
+}
+
+function getSubjectLine(email) {
+    /*If no subject then print <no subject>*/
+    return email['subject'] ?
+        getSubjectLineCSSized(escapeWithRegex(email['subject'])) :
+        getSubjectLineCSSized("&lt;no subject&gt;");
+}
+
+function getContent(message) {
+    return message['content_html'] ? message['content_html'] : "[no body]";
 }
 
 /* Returns relevant HTML content for emails */
 function formatEmails(emails) {
     return emails.map(function(email) {
-        DEV && console.debug(email)
-        let subjectLine = "<hr class=dashed><font size=+1><b>" + email['subject'] + "</b></font><br>";
+        let subjectLine = getSubjectLine(email);
         let totalThreads = email['total_threads'].length;
         let emailContent = subjectLine + "<font size=-1 color=#777>" +
             totalThreads + " messages </font> <hr class=dashed>";
@@ -113,7 +145,7 @@ function formatEmails(emails) {
          */
 
         return email['total_threads'].reduce(function(acc, threadId) {
-            // sender/receiver
+            /* sender/receiver */
             let message = (email['threads'])[threadId];
             let fromLine = getFromLine(message);
             let toLine = getToLine(message);
@@ -123,7 +155,7 @@ function formatEmails(emails) {
             return {
                 'emailContent': acc['emailContent'] +
                     fromLine + toLine + dateTime + divider +
-                    message['content_html'] +
+                    getContent(message) +
                     "<br><br><font size=-2 color=#777>" +
                     acc['messageCount'] + " / " + totalThreads +
                     "</font><br><hr class=dashed><br>",
