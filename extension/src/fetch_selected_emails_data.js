@@ -1,20 +1,23 @@
 'use strict';
 
+/*
+ * This function is inserted as a content script and basically just attaches
+ * the message handler so as to receive the print request from background.js
+ * on time. Run at document_start to maximize chances that script has been
+ * loaded by the time the extension icon is pressed.
+ */
 /** @define {boolean} */
 var DEV = true;
 /** @define {boolean} */
 var NOT_COMPILED = true;
 
-var CONSOLE_STRINGS = {
-    "enter_onmessage_debug": "[PPG][DEBUG] Entered onmessage handler [fetch_selected_emails_data.js]",
-    "enter_selected_threads_debug": "[PPG][DEBUG] Entered selectedThreadIds func [fetch_selected_emails_data.js]",
-    "enter_selected_indices_debug": "[PPG][DEBUG] Printing selected indices [fetch_selected_emails_data.js]",
-    "visible_emails_debug": "[PPG][DEBUG] Printing visible emails [fetch_selected_emails_data.js]",
-    "visible_emails_url_debug": "[PPG][DEBUG] Printing visible emails URL [fetch_selected_emails_data.js]",
-
-}
 
 var GET_CHECKED_SELECTOR = "[gh='tl'] div[role='checkbox'][aria-checked='true']";
+
+var CONSOLE_STRINGS = {
+    selected_threads_print_debug: "[PrettyPrintGmail] Main view, selected emails to print",
+    received_message_debug: "[PrettyPrintGmail] Received message to print",
+}
 
 function pickFirst(arr) {
     return arr.map(function(element) {
@@ -41,16 +44,9 @@ function zipWithIndices(arr, indices) {
 }
 
 function getSelectedThreadIds() {
-    DEV && console.debug(CONSOLE_STRINGS.enter_selected_indices_debug);
-    let selectedIndices = getSelectedRowsIndices();
-    DEV && console.debug(CONSOLE_STRINGS.selected_indices_debug);
-    DEV && console.debug(selectedIndices);
     return getVisibleEmails()
-        .then((emails) => {
-            DEV && console.debug(CONSOLE_STRINGS.visible_emails_debug);
-            DEV && console.debug(emails);
-            return zipWithIndices(emails, selectedIndices);
-        });
+        .then((emails) => zipWithIndices(emails,
+            getSelectedRowsIndices()));
 }
 
 /*
@@ -100,7 +96,6 @@ function makeRequestAsync(_link, method, disable_cache) {
             };
             xmlhttp.open(method, link, true);
             xmlhttp.send();
-
         }
     );
 };
@@ -219,8 +214,6 @@ function getVisibleEmails_clean(get_data) {
 
 function getVisibleEmails() {
     var url = getVisibleEmails_url();
-    DEV && console.debug(CONSOLE_STRINGS.visible_emails_url_debug);
-    DEV && console.debug(url);
     return makeRequestAsync(url, "GET", false) // enable cache
         .then((get_data) => getVisibleEmails_clean(get_data))
 }
@@ -324,6 +317,9 @@ function getEmailUrl(tid) {
         tid + "&msgs=&mb=0&rt=1&search=mbox";
 }
 
+/*
+ * Handles server errors by retrying
+ */
 function getEmailDatum(tid, async) {
     var url = getEmailUrl(tid);
     if (url == null) {
@@ -354,30 +350,43 @@ function getEmailData(selectedThreadIds, async) {
     );
 }
 
+function fetchEmails(send_response) {
+    getSelectedThreadIds()
+        .then((selectedThreadIds) =>
+            getEmailData(selectedThreadIds, true))
+        .then((emails) =>
+            send_response({ 'emails': emails }))
+        .catch(function(error) {
+            DEV && console.error(error);
+            send_response({ 'error': error });
+        });
+}
+
+/*
+ * Retrying on server error is handled for each individual thread by
+ * getEmailDatum
+ */
 chrome.runtime.onMessage.addListener(
-    function messageListener(message, sender, sendResponse) {
+    function messageListener(message, sender, send_response) {
+        DEV && console.debug(CONSOLE_STRINGS.received_message_debug);
         let viewState = message['viewState'];
         let selected_emails = [];
-        DEV && console.debug(CONSOLE_STRINGS.enter_onmessage_debug);
-        // Figure out if on thread or in main view
+        /* Figure out if in thread or in main view */
         if (viewState['inThread']) {
             getEmailData([viewState['threadId']], true)
-                .then((email) => sendResponse({ 'emails': email }))
+                .then((email) => send_response({ 'emails': email }))
                 .catch(function(error) {
                     DEV && console.error(error);
+                    send_response({ 'error': error });
                 });
         } else if (document.querySelectorAll(GET_CHECKED_SELECTOR).length) {
-            getSelectedThreadIds()
-                .then((selectedThreadIds) => { return getEmailData(selectedThreadIds, true) }) // get async
-                .then((emails) => sendResponse({ 'emails': emails }))
-                .catch(function(error) {
-                    DEV && console.error(error);
-                    sendResponse({ 'error': error });
-                });
+            /* pass in the sendResponse callback */
+            DEV && console.debug(CONSOLE_STRINGS.selected_threads_print_debug);
+            fetchEmails(send_response);
         } else {
-            sendResponse({ 'none': true });
+            send_response({ 'none': true });
         }
-        // Async return
+        /* Async return: https://stackoverflow.com/a/20077854 */
         return true;
     }
 );

@@ -21,13 +21,17 @@ function isThreadId(str) {
 }
 
 var CONSOLE_STRINGS = {
-    "clearing_badge_debug": "[PPG][DEBUG] Clearing badge [background.js]",
-    print_called_debug: "[PPG][DEBUG] print() called [background.js]",
-    print_emails_called_debug: "[PPG][DEBUG] printEmails() called [background.js]",
-    fetch_emails_err: "[PPG][ERR] Error while fetching/cleaning email data [background.js]",
-    no_emails_warn: "[PPG][WARN] No emails selected [background.js]",
-    printing_single_debug: "[PPG][DEBUG] Printing single email [background.js]",
-    printing_multiple_debug: "[PPG][DEBUG] Printing multiple emails [background.js]",
+    clearing_badge_debug: "[PrettyPrintGmail] Clearing badge",
+    print_called_debug: "[PrettyPrintGmail] print() called",
+    print_emails_called_debug: "[PrettyPrintGmail] printEmails() called",
+    fetch_emails_err: "[PrettyPrintGmail] Error while fetching/cleaning email data",
+    no_emails_warn: "[PrettyPrintGmail] No emails selected",
+    printing_single_debug: "[PrettyPrintGmail] Printing single email",
+    printing_multiple_debug: "[PrettyPrintGmail] Printing multiple emails",
+    fetched_emails_debug: "[PrettyPrintGmail] Fetched emails successfully",
+    fetched_emails_no_response_err: "[PrettyPrintGmail] No response from fetched emails",
+    fetched_emails_invalid_response_err: "[PrettyPrintGmail] Invalid response from fetched emails",
+    reloaded_ext_debug: "[PrettyPrintGmail] Reloaded extension",
 }
 
 /**
@@ -58,64 +62,114 @@ function print(active, emails) {
         chrome.tabs.onUpdated.addListener(function(tabId, info) {
             if (info.status == "complete" && tabId == newTab.id) {
                 chrome.tabs.sendMessage(newTab.id, { 'emails': emails });
-                chrome.browserAction.setBadgeText({ text: "Done" });
+                setBrowserAction({
+                    'text': "Done",
+                });
                 setTimeout(function() {
                     DEV && console.debug(CONSOLE_STRINGS.clearing_badge_debug);
-                    chrome.browserAction.setBadgeText({ text: '' });
-                    chrome.browserAction.enable();
+                    setBrowserAction({
+                        'clear': true,
+                        'enable': true
+                    });
                 }, 1000);
             }
         });
     });
 }
 
-function printEmails(viewState) {
-    chrome.tabs.query({
-            active: true,
-            lastFocusedWindow: true
-        },
-        function(tabs) {
-            // Please wait
-            chrome.browserAction.setBadgeText({ text: "Wait" });
-            chrome.browserAction.disable();
-            chrome.browserAction.setBadgeBackgroundColor({ color: "black" });
-            chrome.tabs.executeScript({
-                runAt: "document_end",
-                file: "src/fetch_selected_emails_data.js" + (NOT_COMPILED ? "" : ".min")
-            }, function() {
-                chrome.tabs.sendMessage(tabs[0].id, { 'viewState': viewState }, function(response) {
-                    if (response && response['error']) {
-                        DEV && console.error(CONSOLE_STRINGS.fetch_emails_err)
-                        DEV && console.error(response.error);
-                        chrome.browserAction.setBadgeText({ text: "ERR" });
-                        chrome.browserAction.setBadgeBackgroundColor({ color: "red" });
-                        chrome.browserAction.disable();
-                        setTimeout(function() {
-                            DEV && console.debug(CONSOLE_STRINGS.clearing_badge_debug);
-                            chrome.browserAction.setBadgeText({ text: '' });
-                            chrome.browserAction.enable();
-                        }, 3000);
-                    } else if (response && response['emails']) {
-                        print(true, response['emails']);
-                    } else if (response && response['none']) {
-                        DEV && console.warn(CONSOLE_STRINGS.no_emails_warn);
-                        chrome.browserAction.setBadgeText({ text: "None" });
-                        chrome.browserAction.enable();
-                        setTimeout(function() {
-                            DEV && console.debug(CONSOLE_STRINGS.clearing_badge_debug);
-                            chrome.browserAction.setBadgeText({ text: '' });
-                        }, 1000);
-                    } else {
-                        chrome.browserAction.setBadgeText({ text: "" });
-                        chrome.browserAction.enable();
-                    }
-                });
+/*
+ * params -> [[clear (boolean) | text (string)] | color (string) |
+ * [enable (boolean) | disable (boolean)]]
+ */
+function setBrowserAction(params) {
+    if (params['text']) {
+        chrome.browserAction.setBadgeText({ text: params['text'] });
+    } else if (params['clear']) {
+        chrome.browserAction.setBadgeText({ text: '' });
+    }
+    if (params['color']) {
+        chrome.browserAction.setBadgeBackgroundColor({ color: params['color'] });
+    }
+    if (params['enable']) {
+        chrome.browserAction.enable();
+    } else if (params['disable']) {
+        chrome.browserAction.disable();
+    }
+}
+
+/* handle fetched (or not) emails */
+function handleResponse(response) {
+    if (response && response['error']) {
+        /* error case */
+        console.error(CONSOLE_STRINGS.fetch_emails_err)
+        console.error(response.error);
+        setBrowserAction({
+            'text': "ERR",
+            'color': "red",
+            'disable': true
+        });
+        setTimeout(function() {
+            DEV && console.debug(CONSOLE_STRINGS.clearing_badge_debug);
+            setBrowserAction({
+                'clear': true,
+                'enable': true
             });
+        }, 3000);
+    } else if (response && response['emails']) {
+        DEV && console.debug(CONSOLE_STRINGS.fetched_emails_debug);
+        /* print 'em! */
+        print(true, response['emails']);
+    } else if (response && response['none']) {
+        DEV && console.warn(CONSOLE_STRINGS.no_emails_warn);
+        setBrowserAction({
+            'text': "None",
+            'enable': true
+        });
+        setTimeout(function() {
+            DEV && console.debug(CONSOLE_STRINGS.clearing_badge_debug);
+            setBrowserAction({
+                'clear': true,
+            });
+        }, 1000);
+    } else {
+        /* also error cases */
+        if (response) {
+            console.error(CONSOLE_STRINGS.fetched_emails_invalid_response_err);
+            console.error(response);
+        } else {
+            console.error(CONSOLE_STRINGS.fetched_emails_no_response_err);
         }
+        setBrowserAction({
+            'clear': true,
+            'enable': true
+        });
+    }
+}
+
+function fetchEmails(tabId, viewState) {
+    /* handleResponse is passed as callback function */
+    chrome.tabs.sendMessage(tabId, { 'viewState': viewState },
+        handleResponse
     );
 }
 
-// Start
+function printEmails(viewState) {
+    /* We query tabs to figure out which tab is the Gmail one */
+    chrome.tabs.query({
+        active: true,
+        lastFocusedWindow: true
+    }, function(tabs) {
+        /* Please wait */
+        setBrowserAction({
+            'text': "Wait",
+            'color': "black",
+            'disable': true
+        });
+        fetchEmails(tabs[0].id, viewState);
+    });
+}
+
+/* Start: on extension invocation */
 chrome.browserAction.onClicked.addListener(function(tab) {
     get_current_tab_url(function(url) {
         var urlElements = url.split("\/");
@@ -148,14 +202,15 @@ chrome.browserAction.onClicked.addListener(function(tab) {
     })
 });
 
-// Check whether new version is installed, in prod
-!DEV && chrome.runtime.onInstalled.addListener(function(details) {
+/* Check whether new version is installed */
+chrome.runtime.onInstalled.addListener(function(details) {
+
     if (details.reason == "install") {
-        // First install
-        // Set uninstall URL
+        /* If first install, set uninstall URL */
         var uninstallGoogleFormLink = 'https://docs.google.com/forms/d/e/1FAIpQLSeKS-A4VWmXGnKc6jEqXpBSyjCuZ5Ot5ceTGyXuqIOxEbduHQ/viewform';
         if (chrome.runtime.setUninstallURL) {
-            chrome.runtime.setUninstallURL(uninstallGoogleFormLink);
+            !DEV && chrome.runtime.setUninstallURL(uninstallGoogleFormLink);
+            DEV && console.debug(CONSOLE_STRINGS.reloaded_ext_debug);
         }
     } else if (details.reason == "update") {
         var thisVersion = chrome.runtime.getManifest().version;

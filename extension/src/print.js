@@ -6,11 +6,12 @@ var DEV = true;
 var NOT_COMPILED = true;
 
 var CONSOLE_STRINGS = {
-    print_ran_debug: "[PPG][DEBUG] print.js ran [print.js]",
-    onmessage_debug: "[PPG][DEBUG] In onmessage handler [print.js]",
-    insert_in_page_debug: "[PPG][DEBUG] In insertInPage [print.js]",
-    received_emails_debug: "[PPG][DEBUG] Received emails [print.js]",
-    to_is_messed_up_error: "[PPG][ERROR] One of the 'to's is messed up [print.js]",
+    print_ran_debug: "[PrettyPrintGmail] print.js ran",
+    onmessage_debug: "[PrettyPrintGmail] In onmessage handler",
+    insert_in_page_debug: "[PrettyPrintGmail] In insertInPage",
+    received_emails_debug: "[PrettyPrintGmail] Received emails",
+    to_is_messed_up_debug: "[PrettyPrintGmail] One of the 'to's is messed up",
+    parsing_email_error: "[PrettyPrintGmail] Parsing email error",
 }
 
 DEV && console.debug(CONSOLE_STRINGS.print_ran_debug);
@@ -19,7 +20,7 @@ function isString(str) {
     return (typeof str === 'string') || (str instanceof String);
 }
 
-/**
+/*
     Expects a replacement object with
     keys: substrings in str to replace
     values: replacements
@@ -39,7 +40,7 @@ function replaceMultiple(replaceObj, str) {
 }
 
 function handleTo(acc, cur) {
-    // Handle type unsafety :(
+    /* Handle type unsafety :( */
     if (Array.isArray(cur)) {
         return (acc + cur.join(" [")) +
             "], ";
@@ -48,20 +49,26 @@ function handleTo(acc, cur) {
             replaceMultiple({ "<": "[", ">": "]" }, cur) +
             ", ";
     }
-    // else error
-    DEV && console.error(CONSOLE_STRINGS.to_is_messed_up_error);
-    DEV && console.error(cur);
+    /* else error */
+    console.error(CONSOLE_STRINGS.parsing_email_error);
+    DEV && console.debug(CONSOLE_STRINGS.to_is_messed_up_debug)
+    DEV && console.debug(cur);
     return cur;
 }
 
-// TO is annoying. Check handleTo for details
-// We have to operate on first element of to
-// array as well so we have to pass the operated
-// upon element as the initialValue to the reduce
-// and start reducing from the 2nd element.
+/*
+ * NOTE: Every line handles starting <br> for itself
+ */
+
+/* TO is annoying. Check handleTo for details
+ * We have to operate on first element of to
+ * array as well so we have to pass the operated
+ * upon element as the initialValue to the reduce
+ * and start reducing from the 2nd element.
+ */
 function getToLine(message) {
     if (message['to'] && message['to'].length) {
-        let to = "<b>To: </b>";
+        let to = "<br><b>To: </b>";
         let firstTo = message['to'][0];
         if (message['to'].length > 1) {
             return to +
@@ -72,7 +79,21 @@ function getToLine(message) {
     } else return "";
 }
 
-// Returns relevant HTML content for emails
+function getDateTime(message) {
+    let datetime = message['datetime'];
+    /* if it doesn't exist then insert nothing */
+    return datetime ? "<br><b>At: </b>" +  datetime : "";
+}
+
+function getFromLine(message) {
+    return "<font size=-1><b>From: </b>" +
+        message['from'] +
+        " [" +
+        message['from_email'] +
+        "]";
+}
+
+/* Returns relevant HTML content for emails */
 function formatEmails(emails) {
     return emails.map(function(email) {
         DEV && console.debug(email)
@@ -80,20 +101,23 @@ function formatEmails(emails) {
         let totalThreads = email['total_threads'].length;
         let emailContent = subjectLine + "<font size=-1 color=#777>" +
             totalThreads + " messages </font> <hr class=dashed>";
-        // Messages
-        // Have to get keys of email.threads object from total_threads
+
+        /* Messages
+         * Have to get keys of email.threads object from total_threads
+         * Fold over all threads and combine into one HTML string that
+         * will be printed.
+         */
         return email['total_threads'].reduce(function(acc, threadId) {
             // sender/receiver
             let message = (email['threads'])[threadId];
-            let fromLine = "<font size=-1><b>From: </b>" +
-                message['from'] +
-                " [" +
-                message['from_email'] +
-                "]<br>";
+            let fromLine = getFromLine(message);
+            let toLine = getToLine(message);
+            let dateTime = getDateTime(message);
             let divider = "</font><br><hr><br>";
+
             return {
                 'emailContent': acc['emailContent'] +
-                    fromLine + getToLine(message) + divider +
+                    fromLine + toLine + dateTime + divider +
                     message['content_html'] +
                     "<br><br><font size=-2 color=#777>" +
                     acc['messageCount'] + " / " + totalThreads +
@@ -109,7 +133,7 @@ function insertInPage(emails) {
     let body = document.body;
     emails.map(function(emailHTML) {
         body.innerHTML += emailHTML;
-    })
+    });
 }
 
 chrome.runtime.onMessage.addListener(
@@ -117,11 +141,11 @@ chrome.runtime.onMessage.addListener(
         let emails = message['emails'];
         DEV && console.debug(CONSOLE_STRINGS.onmessage_debug);
         if (emails) {
-            // Set title:
+            /* Set title: */
             document.title = emails.length + " email" + (emails.length == 1 ? "" : "s");
             insertInPage((formatEmails(emails)));
         }
-        // Check if all images have finished loading
+        /* Check if all images have finished loading */
         let images = document.getElementsByTagName("img");
         let counter = images.length;
 
@@ -132,13 +156,14 @@ chrome.runtime.onMessage.addListener(
                     counter--;
                 }
             }
-            // Invalidate cached image / reload image at this point.
-            // The onload function is flaky if not called before setting src
-            // However, I'm confused as to how the image can be incomplete
-            // and still the onerror function does not fire.
+            /* Invalidate cached image / reload image at this point.
+             * The onload function is flaky if not called before setting src
+             * However, I'm confused as to how the image can be incomplete
+             * and still the onerror function does not fire.
+             */
             images[i].src += "?" + new Date().getTime();
         }
-        // Check every 500 ms
+        /* Check every 500 ms */
         let interval = setInterval(function() {
             if (counter <= 0) {
                 clearInterval(interval);
