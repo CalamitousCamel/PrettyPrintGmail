@@ -6,11 +6,12 @@ var DEV = true;
 var NOT_COMPILED = true;
 
 var CONSOLE_STRINGS = {
-    print_ran_debug: "[PPG][DEBUG] print.js ran [print.js]",
-    onmessage_debug: "[PPG][DEBUG] In onmessage handler [print.js]",
-    insert_in_page_debug: "[PPG][DEBUG] In insertInPage [print.js]",
-    received_emails_debug: "[PPG][DEBUG] Received emails [print.js]",
-    to_is_messed_up_error: "[PPG][ERROR] One of the 'to's is messed up [print.js]",
+    print_ran_debug: "[PrettyPrintGmail] print.js ran",
+    onmessage_debug: "[PrettyPrintGmail] In onmessage handler",
+    insert_in_page_debug: "[PrettyPrintGmail] In insertInPage",
+    received_emails_debug: "[PrettyPrintGmail] Received emails",
+    to_is_messed_up_debug: "[PrettyPrintGmail] One of the 'to's is messed up",
+    parsing_email_error: "[PrettyPrintGmail] Parsing email error",
 }
 
 DEV && console.debug(CONSOLE_STRINGS.print_ran_debug);
@@ -49,8 +50,9 @@ function handleTo(acc, cur) {
             ", ";
     }
     /* else error */
-    DEV && console.error(CONSOLE_STRINGS.to_is_messed_up_error);
-    DEV && console.error(cur);
+    console.error(CONSOLE_STRINGS.parsing_email_error);
+    DEV && console.debug(CONSOLE_STRINGS.to_is_messed_up_debug)
+    DEV && console.debug(cur);
     return cur;
 }
 
@@ -102,7 +104,11 @@ function formatEmails(emails) {
 
         /* Messages
          * Have to get keys of email.threads object from total_threads
-         * Fold over all threads and combine into one HTML string that 
+<<<<<<< HEAD
+         * Fold over all threads and combine into one HTML string that
+=======
+         * Fold over all threads and combine into one HTML string that
+>>>>>>> e3e3b24... Fix bugs and retructure fetching
          * will be printed.
          */
         return email['total_threads'].reduce(function(acc, threadId) {
@@ -131,7 +137,7 @@ function insertInPage(emails) {
     let body = document.body;
     emails.map(function(emailHTML) {
         body.innerHTML += emailHTML;
-    })
+    });
 }
 
 chrome.runtime.onMessage.addListener(

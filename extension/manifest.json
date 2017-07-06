@@ -20,6 +20,15 @@
         "src/print_native.js"
       ],
       "run_at": "document_end"
+    },
+    {
+      "matches": [
+        "https://mail.google.com/*"
+      ],
+      "js": [
+        "src/fetch_selected_emails_data.js"
+      ],
+      "run_at": "document_start"
     }
   ],
   "icons": {
