@@ -71,6 +71,15 @@ If you want to pretty print a **single message** in a long threaded conversation
   <p align="center"><sub><em>Pretty printed single email!</em></sub></p>
 </p>
 
+### Options
+Right click on extension icon and press Options. Choose what you want printed!
+
+<p align="center">
+  <img src="/screenshots/screenshot-options.png"/>
+  <br><br>
+  <p align="center"><sub><em>Options</em></sub></p>
+</p>
+
 
 ### Installation
 Simply head on over to the [Chrome Web Store](https://chrome.google.com/webstore/detail/pretty-print-gmail/gdanfldekhdgkbmdoeapbgbcpfglkflg) and install it. 
