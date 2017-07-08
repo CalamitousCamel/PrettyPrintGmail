@@ -17,6 +17,7 @@ var GET_CHECKED_SELECTOR = "[gh='tl'] div[role='checkbox'][aria-checked='true']"
 var CONSOLE_STRINGS = {
     selected_threads_print_debug: "[PrettyPrintGmail] Main view, selected emails to print",
     received_message_debug: "[PrettyPrintGmail] Received message to print",
+    inboxId_debug: "[PrettyPrintGmail] Received inbox id: ",
 }
 
 function pickFirst(arr) {
@@ -350,12 +351,12 @@ function getEmailData(selectedThreadIds, async) {
     );
 }
 
-function fetchEmails(send_response) {
+function fetchEmails(send_response, inboxId) {
     getSelectedThreadIds()
         .then((selectedThreadIds) =>
             getEmailData(selectedThreadIds, true))
         .then((emails) =>
-            send_response({ 'emails': emails }))
+            send_response({ 'emails': emails, 'inboxId': inboxId }))
         .catch(function(error) {
             DEV && console.error(error);
             send_response({ 'error': error });
@@ -370,11 +371,14 @@ chrome.runtime.onMessage.addListener(
     function messageListener(message, sender, send_response) {
         DEV && console.debug(CONSOLE_STRINGS.received_message_debug);
         let viewState = message['viewState'];
+        let inboxId = message['inboxId'];
+        DEV && console.debug(CONSOLE_STRINGS.inboxId_debug);
+        DEV && console.debug(inboxId);
         let selected_emails = [];
         /* Figure out if in thread or in main view */
         if (viewState['inThread']) {
             getEmailData([viewState['threadId']], true)
-                .then((email) => send_response({ 'emails': email }))
+                .then((email) => send_response({ 'emails': email, 'inboxId': inboxId }))
                 .catch(function(error) {
                     DEV && console.error(error);
                     send_response({ 'error': error });
@@ -382,7 +386,7 @@ chrome.runtime.onMessage.addListener(
         } else if (document.querySelectorAll(GET_CHECKED_SELECTOR).length) {
             /* pass in the sendResponse callback */
             DEV && console.debug(CONSOLE_STRINGS.selected_threads_print_debug);
-            fetchEmails(send_response);
+            fetchEmails(send_response, inboxId);
         } else {
             send_response({ 'none': true });
         }

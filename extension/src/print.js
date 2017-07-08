@@ -12,6 +12,8 @@ var CONSOLE_STRINGS = {
     received_emails_debug: "[PrettyPrintGmail] Received emails",
     to_is_messed_up_debug: "[PrettyPrintGmail] One of the 'to's is messed up",
     parsing_email_error: "[PrettyPrintGmail] Parsing email error",
+    options_debug: "[PrettyPrintGmail] Got options: ",
+    inboxId_debug: "[PrettyPrintGmail] Got inboxId: ",
 }
 
 DEV && console.debug(CONSOLE_STRINGS.print_ran_debug);
@@ -72,7 +74,10 @@ function handleTo(acc, cur) {
  * upon element as the initialValue to the reduce
  * and start reducing from the 2nd element.
  */
-function getToLine(message) {
+function getToLine(message, display) {
+    if (!display) {
+        return "";
+    }
     if (message['to'] && message['to'].length) {
         let to = "<br><b>To: </b>";
         let firstTo = message['to'][0];
@@ -85,14 +90,20 @@ function getToLine(message) {
     } else return "";
 }
 
-function getDateTime(message) {
+function getDateTime(message, display) {
+    if (!display) {
+        return "";
+    }
     let datetime = message['datetime'];
     /* if it doesn't exist then insert nothing */
     return datetime ? "<br><b>At: </b>" + datetime : "";
 }
 
-function getFromLine(message) {
-    return "<font size=-1><b>From: </b>" +
+function getFromLine(message, display) {
+    if (!display) {
+        return "";
+    }
+    return "<br><font size=-1><b>From: </b>" +
         message['from'] +
         ' &lt;' +
         message['from_email'] +
@@ -105,7 +116,7 @@ function getSubjectLineCSSized(subject) {
 }
 
 function escapeWithRegex(s) {
-    return s.replace(/[&"<>]/g, function (c) {
+    return s.replace(/[&"<>]/g, function(c) {
         return {
             '&': "&amp;",
             '"': "&quot;",
@@ -115,7 +126,10 @@ function escapeWithRegex(s) {
     });
 }
 
-function getSubjectLine(email) {
+function getSubjectLine(email, display) {
+    if (!display) {
+        return "<hr class=dashed>";
+    }
     /*If no subject then print <no subject>*/
     return email['subject'] ?
         getSubjectLineCSSized(escapeWithRegex(email['subject'])) :
@@ -126,31 +140,35 @@ function getContent(message) {
     return message['content_html'] ? message['content_html'] : "[no body]";
 }
 
+function getInitialEmailContent(numThreads) {
+    let initialCss = "<font size=-1 color=#777>";
+    let numMessages = numThreads > 1 ? numThreads + " messages " :
+        numThreads + " message ";
+    let endingCss = "</font> <hr class=dashed>";
+    return initialCss + numMessages + endingCss;
+}
+
 /* Returns relevant HTML content for emails */
-function formatEmails(emails) {
+function formatEmails(emails, options) {
     return emails.map(function(email) {
-        let subjectLine = getSubjectLine(email);
+        let subjectLine = getSubjectLine(email, options['subject']);
         let totalThreads = email['total_threads'].length;
-        let emailContent = subjectLine + "<font size=-1 color=#777>" +
-            totalThreads + " messages </font> <hr class=dashed>";
+        let emailContent = subjectLine + getInitialEmailContent(totalThreads);
 
         /* Messages
          * Have to get keys of email.threads object from total_threads
-<<<<<<< HEAD
          * Fold over all threads and combine into one HTML string that
-=======
-         * Fold over all threads and combine into one HTML string that
->>>>>>> e3e3b24... Fix bugs and retructure fetching
          * will be printed.
          */
 
         return email['total_threads'].reduce(function(acc, threadId) {
             /* sender/receiver */
+            /* don't change order of these lines */
             let message = (email['threads'])[threadId];
-            let fromLine = getFromLine(message);
-            let toLine = getToLine(message);
-            let dateTime = getDateTime(message);
-            let divider = "</font><br><hr><br>";
+            let fromLine = getFromLine(message, options['from']);
+            let toLine = getToLine(message, options['to']).replace(/(,\s$)/g, "");
+            let dateTime = getDateTime(message, options['datetime']);
+            let divider = "</font><br><hr>";
 
             return {
                 'emailContent': acc['emailContent'] +
@@ -158,7 +176,7 @@ function formatEmails(emails) {
                     getContent(message) +
                     "<br><br><font size=-2 color=#777>" +
                     acc['messageCount'] + " / " + totalThreads +
-                    "</font><br><hr class=dashed><br>",
+                    "</font><br><hr class=dashed>",
                 'messageCount': acc['messageCount'] + 1
             };
         }, { 'emailContent': emailContent, 'messageCount': 1 })['emailContent'] + "<footer>";
@@ -173,14 +191,30 @@ function insertInPage(emails) {
     });
 }
 
+function handleProxified(src, inboxId) {
+    let matcher = src.match(/chrome-extension:\/\/[a-zA-Z]*\/printpage\.html?(.*)/);
+    if (matcher) {
+        /* the image has been proxied */
+        return "http://mail.google.com/mail/u/" + inboxId + "/" + matcher[1];
+    }
+    return src;
+}
+
 chrome.runtime.onMessage.addListener(
     function messageListener(message, sender, sendResponse) {
         let emails = message['emails'];
+        let options = message['options'];
+        let inboxId = message['inboxId'];
+
+        DEV && console.debug(CONSOLE_STRINGS.inboxId_debug);
+        DEV && console.debug(inboxId);
+        DEV && console.debug(CONSOLE_STRINGS.options_debug);
+        DEV && console.debug(options);
         DEV && console.debug(CONSOLE_STRINGS.onmessage_debug);
         if (emails) {
             /* Set title: */
             document.title = emails.length + " email" + (emails.length == 1 ? "" : "s");
-            insertInPage((formatEmails(emails)));
+            insertInPage((formatEmails(emails, options)));
         }
         /* Check if all images have finished loading */
         let images = document.getElementsByTagName("img");
@@ -198,7 +232,8 @@ chrome.runtime.onMessage.addListener(
              * However, I'm confused as to how the image can be incomplete
              * and still the onerror function does not fire.
              */
-            images[i].src += "?" + new Date().getTime();
+            images[i].src = handleProxified(images[i].src, inboxId);
+            images[i].src += "?t=" + new Date().getTime();
         }
         /* Check every 500 ms */
         let interval = setInterval(function() {

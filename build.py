@@ -69,19 +69,20 @@ if os.path.exists(OUTPUT_DIR):
 print("[build.py] Creating %s dir..." % (OUTPUT_DIR))
 os.makedirs(OUTPUT_DIR)
 
-print("[build.py] Creating nested assets/ src/ directories...")
-# Create nested assets/ lib/ src/ folders
-os.makedirs("%sassets" % (OUTPUT_DIR))
-os.makedirs("%ssrc" % (OUTPUT_DIR))
+print("[build.py] Creating nested assets/ src/ options/ directories...")
+# Create nested assets/ src/ /options folders
+for subdir in ['assets', 'src/', 'options/']:
+    os.makedirs("%s%s" % (OUTPUT_DIR, subdir))
 
 print("[build.py] Copying over nested files...")
-for subdir in ['', 'assets/', 'src/']:
+for subdir in ['', 'assets/', 'src/', 'options/']:
     copyover_from_extension('extension/', subdir)
 
 print("[build.py] Minifying .js files...")
-for subdir in ['src/']:
+for subdir in ['src/', 'options/']:
     minify_js('extension/', subdir, DEV)
 
+### Replace .js -> .js.min for manifest.json
 print("[build.py] Editing manifest.json and copying over...")
 # Read in the file
 with open('%smanifest.json' % ('extension/'), 'r') as manifest:
@@ -94,6 +95,34 @@ manifest_data = manifest_data.replace('.js', '.js.min')
 with open('%smanifest.json' % (OUTPUT_DIR), 'w') as new_manifest:
     new_manifest.write(manifest_data)
 
+
+print("[build.py] Editing html files and copying over...")
+
+# Replace .js -> .js.min for printpage.html
+
+# Read in the file
+with open('%sprintpage.html' % ('extension/'), 'r') as html:
+    html_data = html.read()
+
+# Replace the target string
+html_data = html_data.replace('.js', '.js.min')
+
+# Write the file out again
+with open('%sprintpage.html' % (OUTPUT_DIR), 'w') as new_html:
+    new_html.write(html_data)
+
+# Replace .js -> .js.min for options/options.html
+
+# Read in the file
+with open('%soptions.html' % ('extension/options/'), 'r') as html:
+    html_data = html.read()
+
+# Replace the target string
+html_data = html_data.replace('.js', '.js.min')
+
+# Write the file out again
+with open('%s%soptions.html' % (OUTPUT_DIR, 'options/'), 'w') as new_html:
+    new_html.write(html_data)
 
 print("[build.py] Packaging %s..." % (OUTPUT_DIR))
 cmd = "./pack.sh bump" if bump else "./pack.sh"

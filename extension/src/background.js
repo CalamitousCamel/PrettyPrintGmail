@@ -33,6 +33,7 @@ var CONSOLE_STRINGS = {
     fetched_emails_no_response_err: "[PrettyPrintGmail] No response from fetched emails",
     fetched_emails_invalid_response_err: "[PrettyPrintGmail] Invalid response from fetched emails",
     reloaded_ext_debug: "---- [PrettyPrintGmail] Reloaded extension at ---- " + (new Date().toLocaleString()),
+    inboxId_debug: "[PrettyPrintGmail] Got inboxId: ",
 }
 
 /**
@@ -53,7 +54,7 @@ function get_current_tab_url(callback) {
     })
 };
 
-function print(active, emails) {
+function print(active, emails, options, inboxId) {
     DEV && console.debug(CONSOLE_STRINGS.print_called_debug);
     DEV && console.debug(emails);
     chrome.tabs.create({
@@ -62,7 +63,11 @@ function print(active, emails) {
     }, function(newTab) {
         chrome.tabs.onUpdated.addListener(function(tabId, info) {
             if (info.status == "complete" && tabId == newTab.id) {
-                chrome.tabs.sendMessage(newTab.id, { 'emails': emails });
+                chrome.tabs.sendMessage(newTab.id, {
+                    'emails': emails,
+                    'options': options,
+                    'inboxId': inboxId
+                });
                 setBrowserAction({
                     'text': "Done",
                 });
@@ -98,12 +103,13 @@ function setBrowserAction(params) {
     }
 }
 
-/* handle fetched (or not) emails */
+/* Handle fetched (or not) emails */
 function handleResponse(response) {
     if (response && response['error']) {
         /* error case */
         console.error(CONSOLE_STRINGS.fetch_emails_err)
         console.error(response.error);
+        /* Badge setting and clearing */
         setBrowserAction({
             'text': "ERR",
             'color': "red",
@@ -117,11 +123,16 @@ function handleResponse(response) {
             });
         }, 3000);
     } else if (response && response['emails']) {
+        /* SUCCESS CASE */
         DEV && console.debug(CONSOLE_STRINGS.fetched_emails_debug);
+        DEV && console.debug(CONSOLE_STRINGS.inboxId_debug);
+        DEV && console.debug(response['inboxId']);
         /* print 'em! */
-        print(true, response['emails']);
+        restoreOptionsAndPrint(true, response['emails'], response['inboxId']);
     } else if (response && response['none']) {
+        /* No emails selected */
         DEV && console.warn(CONSOLE_STRINGS.no_emails_warn);
+        /* Badge setting and clearing */
         setBrowserAction({
             'text': "None",
             'enable': true
@@ -133,28 +144,41 @@ function handleResponse(response) {
             });
         }, 1000);
     } else {
-        /* also error cases */
+        /* also error cases - can't understand what fetch.js got */
         if (response) {
+            /* was debating if this should be DEV &&'ed but I think in this case
+             * it is a definite error and I want the user to tell me what happened
+             * because it is definitely something that should never happen
+             */
             console.error(CONSOLE_STRINGS.fetched_emails_invalid_response_err);
             console.error(response);
         } else {
             console.error(CONSOLE_STRINGS.fetched_emails_no_response_err);
         }
+        /* Badge setting and clearing */
         setBrowserAction({
-            'clear': true,
-            'enable': true
+            'text': "ERR",
+            'color': "red",
+            'disable': true
         });
+        setTimeout(function() {
+            DEV && console.debug(CONSOLE_STRINGS.clearing_badge_debug);
+            setBrowserAction({
+                'clear': true,
+                'enable': true
+            });
+        }, 3000);
     }
 }
 
-function fetchEmails(tabId, viewState) {
+function fetchEmails(tabId, viewState, inboxId) {
     /* handleResponse is passed as callback function */
-    chrome.tabs.sendMessage(tabId, { 'viewState': viewState },
+    chrome.tabs.sendMessage(tabId, { 'viewState': viewState, 'inboxId': inboxId },
         handleResponse
     );
 }
 
-function printEmails(viewState) {
+function printEmails(viewState, inboxId) {
     /* We query tabs to figure out which tab is the Gmail one */
     chrome.tabs.query({
         active: true,
@@ -166,7 +190,7 @@ function printEmails(viewState) {
             'color': "black",
             'disable': true
         });
-        fetchEmails(tabs[0].id, viewState);
+        fetchEmails(tabs[0].id, viewState, inboxId);
     });
 }
 
@@ -177,7 +201,7 @@ chrome.browserAction.onClicked.addListener(function(tab) {
         var threadId = urlElements.pop();
         var positionOfInboxId = 5;
         var inboxNumber = urlElements[positionOfInboxId];
-        var canonicalUrl = "https://mail.google.com/mail/u/";
+        var canonicalUrl = "http://mail.google.com/mail/u/";
         if (isThreadId(threadId.toLowerCase())) {
             // On a printable email...
             // Print single
@@ -186,14 +210,14 @@ chrome.browserAction.onClicked.addListener(function(tab) {
                 'inThread': true,
                 'threadId': threadId.toLowerCase()
             };
-            printEmails(viewState);
+            printEmails(viewState, inboxNumber);
         } else if (inGmail(urlElements)) {
             DEV && console.debug(CONSOLE_STRINGS.printing_multiple_debug);
             let viewState = {
                 'inThread': false,
                 'threadId': ""
             };
-            printEmails(viewState);
+            printEmails(viewState, inboxNumber);
         } else {
             // Just go to Gmail
             chrome.tabs.create({
@@ -216,3 +240,17 @@ chrome.runtime.onInstalled.addListener(function(details) {
         DEV && console.debug(CONSOLE_STRINGS.reloaded_ext_debug);
     }
 });
+
+/* Restores options and result cache
+ * stored in chrome.storage asynchronously
+ */
+function restoreOptionsAndPrint(active, emails, inboxId) {
+    chrome.storage.sync.get({
+        'subject': true,
+        'from': true,
+        'to': true,
+        'datetime': true,
+    }, function(options) {
+        print(active, emails, options, inboxId);
+    });
+}
