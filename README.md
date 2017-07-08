@@ -8,7 +8,7 @@ Pretty print Gmail emails. [Chrome extension](https://chrome.google.com/webstore
 
 ## Why would I want this?
 
-<*exaggerated-TV-salesperson-voice*> Are you sick of Gmail doing *this* when you try to print an email?
+<*exaggerated-TV-salesperson-voice*> Are you sick of Gmail doing *this* when you try to print an email? (cat emojis my own):
 
 <p align="center">
   <img src="/screenshots/screenshot-before.png"/>
@@ -76,6 +76,9 @@ Simply head on over to the [Chrome Web Store](https://chrome.google.com/webstore
 
 ### Requirements
 Just Google Chrome!
+
+### Press
+[5 Lesser Known Google Chrome Extensions for Gmail You Should be Using](http://techpp.com/2017/06/02/gmail-chrome-extensions/)
 
 ### Donations
 If you use this extension, please consider donating:
