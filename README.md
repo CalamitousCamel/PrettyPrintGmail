@@ -10,7 +10,7 @@ Pretty print Gmail emails. [Chrome extension](https://chrome.google.com/webstore
 
 ## Why would I want this?
 
-I hated it when Gmail would completely mess up my email when I wanted to print one (cat emojis my own):
+I hated it when Gmail would completely mess up my email when I wanted to print (cat emojis my own):
 
 <p align="center">
   <img src="/screenshots/screenshot-before.png"/>
