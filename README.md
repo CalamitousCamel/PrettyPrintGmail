@@ -4,11 +4,13 @@
 
 # Pretty Print for Gmail
 
+[![Chrome Web Store](https://img.shields.io/chrome-web-store/d/gdanfldekhdgkbmdoeapbgbcpfglkflg.svg)]()
+
 Pretty print Gmail emails. [Chrome extension](https://chrome.google.com/webstore/detail/pretty-print-gmail/gdanfldekhdgkbmdoeapbgbcpfglkflg). Get rid of that clunky Gmail logo and other visual clutter while printing emails.
 
 ## Why would I want this?
 
-<*exaggerated-TV-salesperson-voice*> Are you sick of Gmail doing *this* when you try to print an email? (cat emojis my own):
+I hated it when Gmail would completely mess up my email when I wanted to print one (cat emojis my own):
 
 <p align="center">
   <img src="/screenshots/screenshot-before.png"/>
@@ -16,7 +18,7 @@ Pretty print Gmail emails. [Chrome extension](https://chrome.google.com/webstore
   <p align="center"><sub>Just. Why would I want this, Gmail.</sub></p>
 </p>
 
-Wouldn't you rather it gave you a nice, clean print view of your emails, the way you deserve?
+So I made [an extension](https://chrome.google.com/webstore/detail/pretty-print-gmail/gdanfldekhdgkbmdoeapbgbcpfglkflg) that would clean up the print view:
 
 <p align="center">
   <img src="/screenshots/screenshot-after.png"/>
@@ -24,8 +26,7 @@ Wouldn't you rather it gave you a nice, clean print view of your emails, the way
   <p align="center"><sub>omg so clean!</sub></p>
 </p>
 
-Then [this extension](https://chrome.google.com/webstore/detail/pretty-print-gmail/gdanfldekhdgkbmdoeapbgbcpfglkflg) is for you. 
-</*exaggerated-TV-salesperson-voice*> 
+I released it, and people seemed to like it. I got a lot of feature requests, so I kept adding features, until at this point you can batch print emails, print threads, and print individual emails in threads.
 
 ## Features and Usage
 
