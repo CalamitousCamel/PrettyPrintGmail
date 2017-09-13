@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-file="build/manifest.json"
+# IF YOU WANT TO EDIT INPUT FILE DIRECTORY, DO HERE #1
+file="extension/manifest.json"
 version=$(cat "$file" | grep "\"version\"" | cut -d ":" -f2 | cut -d "," -f1 | cut -d "\"" -f2)
 bumped=""
 # If `bump` passed in as argument, increment manifest.json version
@@ -27,6 +28,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     echo "Done."
 fi
 
-zip -r "$name-$version".zip build/
+# AND HERE #2
+zip -r "$name-$version".zip extension/
 
 

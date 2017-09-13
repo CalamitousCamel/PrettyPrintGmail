@@ -17,8 +17,16 @@ function inGmail(urlElements) {
 
 // The thread id is a 64 bit hex
 function isThreadId(str) {
-    return /^[0-9a-f]{16}$/i.test(str);
+    return /^[0-9a-f]{16,}$/i.test(str);
 }
+
+/* This is set in start function */
+var INBOX_ID = -1;
+var URL = "";
+
+/**
+    NOTE: We cannot access window object from background.
+ */
 
 var CONSOLE_STRINGS = {
     update_info: "[PrettyPrintGmail] Updated extension to " + chrome.runtime.getManifest().version + "!",
@@ -34,6 +42,8 @@ var CONSOLE_STRINGS = {
     fetched_emails_invalid_response_err: "[PrettyPrintGmail] Invalid response from fetched emails",
     reloaded_ext_debug: "---- [PrettyPrintGmail] Reloaded extension at ---- " + (new Date().toLocaleString()),
     inboxId_debug: "[PrettyPrintGmail] Got inboxId: ",
+    inboxId_warn: "[PrettyPrintGmail] Could not get inbox id",
+    start_debug: "[PrettyPrintGmail] Clicked on extension icon",
 }
 
 /**
@@ -54,7 +64,35 @@ function get_current_tab_url(callback) {
     })
 };
 
-function print(active, emails, options, inboxId) {
+/* Done this way so I can refactor at some point */
+function getInboxId() {
+    return INBOX_ID;
+}
+
+/* Done this way so I can refactor at some point */
+function getCanonicalUrl() {
+    return URL.substring(0, URL.indexOf("/u/") + "/u/".length);
+}
+
+function isNumeric(number) {
+    return !isNaN(parseFloat(number)) && isFinite(number);
+}
+
+/* Ideally we want to get inbox number in this function only but
+ * that would mean getting current tab url using Chrome api
+ * and we already do that once in start function so use a shared
+ * global variable to get around that for now
+ */
+function print(active, emails, options) {
+    let inboxId = getInboxId();
+    if (!isNumeric(inboxId) || inboxId < 0) {
+        console.warn(CONSOLE_STRINGS.inboxId_warn);
+    }
+
+    DEV && console.debug(CONSOLE_STRINGS.inboxId_debug + inboxId);
+
+    let canonicalUrl = getCanonicalUrl();
+
     DEV && console.debug(CONSOLE_STRINGS.print_called_debug);
     DEV && console.debug(emails);
     chrome.tabs.create({
@@ -66,7 +104,8 @@ function print(active, emails, options, inboxId) {
                 chrome.tabs.sendMessage(newTab.id, {
                     'emails': emails,
                     'options': options,
-                    'inboxId': inboxId
+                    'inboxId': inboxId,
+                    'url': canonicalUrl
                 });
                 setBrowserAction({
                     'text': "Done",
@@ -125,10 +164,8 @@ function handleResponse(response) {
     } else if (response && response['emails']) {
         /* SUCCESS CASE */
         DEV && console.debug(CONSOLE_STRINGS.fetched_emails_debug);
-        DEV && console.debug(CONSOLE_STRINGS.inboxId_debug);
-        DEV && console.debug(response['inboxId']);
         /* print 'em! */
-        restoreOptionsAndPrint(true, response['emails'], response['inboxId']);
+        restoreOptionsAndPrint(true, response['emails']);
     } else if (response && response['none']) {
         /* No emails selected */
         DEV && console.warn(CONSOLE_STRINGS.no_emails_warn);
@@ -171,14 +208,17 @@ function handleResponse(response) {
     }
 }
 
-function fetchEmails(tabId, viewState, inboxId) {
+/* Tell fetch.js to fetch currently selected emails and handle response */
+/* TODO: return response to caller and let it handle */
+function fetchEmailsAndPrint(tabId, viewState) {
     /* handleResponse is passed as callback function */
-    chrome.tabs.sendMessage(tabId, { 'viewState': viewState, 'inboxId': inboxId },
+    chrome.tabs.sendMessage(tabId, { 'viewState': viewState },
         handleResponse
     );
 }
 
-function printEmails(viewState, inboxId) {
+/* TODO: call fetchEmailsAndPrint and handle its return using a Promise */
+function printEmails(viewState) {
     /* We query tabs to figure out which tab is the Gmail one */
     chrome.tabs.query({
         active: true,
@@ -190,19 +230,48 @@ function printEmails(viewState, inboxId) {
             'color': "black",
             'disable': true
         });
-        fetchEmails(tabs[0].id, viewState, inboxId);
+        fetchEmailsAndPrint(tabs[0].id, viewState);
     });
 }
 
 /* Start: on extension invocation */
 chrome.browserAction.onClicked.addListener(function(tab) {
     get_current_tab_url(function(url) {
-        var urlElements = url.split("\/");
-        var threadId = urlElements.pop();
-        var positionOfInboxId = 5;
-        var inboxNumber = urlElements[positionOfInboxId];
-        var canonicalUrl = "http://mail.google.com/mail/u/";
-        if (isThreadId(threadId.toLowerCase())) {
+
+        DEV && console.debug(CONSOLE_STRINGS.start_debug);
+
+        URL = url;
+
+        let inEmail = false;
+        let threadId = "";
+
+        /* if not in gmail, navigate to gmail and skip rest of function */
+        if (!inGmail(url)) {
+            chrome.tabs.create({
+                url: "https://mail.google.com"
+            });
+            return;
+        }
+
+        /* get inbox id */
+        let userIndexPrefix = "/u/";
+        INBOX_ID = parseInt(url.substring(url.indexOf(userIndexPrefix) +
+            userIndexPrefix.length), 10);
+        if (!isNumeric(INBOX_ID) || INBOX_ID < 0) {
+            console.warn(CONSOLE_STRINGS.inboxId_warn);
+        }
+        DEV && console.debug(CONSOLE_STRINGS.inboxId_debug + INBOX_ID);
+
+        /* get thread id, if any */
+        let hash = url.substring(url.indexOf("#") + "#".length);
+        if (hash) {
+            threadId = hash.split("/").pop() || "";
+            if (threadId && isThreadId(threadId)) {
+                inEmail = true;
+            }
+        }
+
+        if (inEmail) {
             // On a printable email...
             // Print single
             DEV && console.debug(CONSOLE_STRINGS.printing_single_debug);
@@ -210,19 +279,14 @@ chrome.browserAction.onClicked.addListener(function(tab) {
                 'inThread': true,
                 'threadId': threadId.toLowerCase()
             };
-            printEmails(viewState, inboxNumber);
-        } else if (inGmail(urlElements)) {
+            printEmails(viewState);
+        } else {
             DEV && console.debug(CONSOLE_STRINGS.printing_multiple_debug);
             let viewState = {
                 'inThread': false,
                 'threadId': ""
             };
-            printEmails(viewState, inboxNumber);
-        } else {
-            // Just go to Gmail
-            chrome.tabs.create({
-                url: "https://mail.google.com"
-            });
+            printEmails(viewState);
         }
     })
 });
@@ -244,13 +308,13 @@ chrome.runtime.onInstalled.addListener(function(details) {
 /* Restores options and result cache
  * stored in chrome.storage asynchronously
  */
-function restoreOptionsAndPrint(active, emails, inboxId) {
+function restoreOptionsAndPrint(active, emails) {
     chrome.storage.sync.get({
         'subject': true,
         'from': true,
         'to': true,
         'datetime': true,
     }, function(options) {
-        print(active, emails, options, inboxId);
+        print(active, emails, options);
     });
 }

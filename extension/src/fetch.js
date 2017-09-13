@@ -17,7 +17,8 @@ var GET_CHECKED_SELECTOR = "[gh='tl'] div[role='checkbox'][aria-checked='true']"
 var CONSOLE_STRINGS = {
     selected_threads_print_debug: "[PrettyPrintGmail] Main view, selected emails to print",
     received_message_debug: "[PrettyPrintGmail] Received message to print",
-    inboxId_debug: "[PrettyPrintGmail] Received inbox id: ",
+    parsed_data_debug: "[PrettyPrintGmail] Parsed email data: ",
+    gmail_error: "[PrettyPrintGmail] Error while fetching email: ",
 }
 
 function pickFirst(arr) {
@@ -52,6 +53,7 @@ function getSelectedThreadIds() {
 
 /*
     Functions from gmail.js library by Kartik Talwar - reimplemented.
+    I did not want dependency on jquery.
     https://github.com/KartikTalwar/gmail.js
 */
 function getCurrentPage(hash) {
@@ -289,6 +291,7 @@ function parseEmailData(email_data) {
             }
         }
     }
+    DEV && console.debug(CONSOLE_STRINGS.parsed_data_debug);
     DEV && console.debug(data);
     return data;
 }
@@ -334,8 +337,8 @@ function getEmailDatum(tid, async) {
             .catch((error) => {
                 // Two possible causes of error
                 // Request (500), or server error in response
-                DEV && console.debug(error);
-                DEV && console.debug("Retrying for " + tid);
+                DEV && console.debug("Received error \"" +
+                    error + "\" for thread id" + tid + ", retrying.");
                 return getEmailDatum(tid, async);
             });
     } else {
@@ -351,14 +354,14 @@ function getEmailData(selectedThreadIds, async) {
     );
 }
 
-function fetchEmails(send_response, inboxId) {
+function fetchEmails(send_response) {
     getSelectedThreadIds()
         .then((selectedThreadIds) =>
             getEmailData(selectedThreadIds, true))
         .then((emails) =>
-            send_response({ 'emails': emails, 'inboxId': inboxId }))
+            send_response({ 'emails': emails }))
         .catch(function(error) {
-            DEV && console.error(error);
+            DEV && console.error(CONSOLE_STRINGS.gmail_error + error);
             send_response({ 'error': error });
         });
 }
@@ -371,22 +374,19 @@ chrome.runtime.onMessage.addListener(
     function messageListener(message, sender, send_response) {
         DEV && console.debug(CONSOLE_STRINGS.received_message_debug);
         let viewState = message['viewState'];
-        let inboxId = message['inboxId'];
-        DEV && console.debug(CONSOLE_STRINGS.inboxId_debug);
-        DEV && console.debug(inboxId);
         let selected_emails = [];
         /* Figure out if in thread or in main view */
         if (viewState['inThread']) {
             getEmailData([viewState['threadId']], true)
-                .then((email) => send_response({ 'emails': email, 'inboxId': inboxId }))
+                .then((email) => send_response({ 'emails': email }))
                 .catch(function(error) {
-                    DEV && console.error(error);
+                    DEV && console.error(CONSOLE_STRINGS.gmail_error + error);
                     send_response({ 'error': error });
                 });
         } else if (document.querySelectorAll(GET_CHECKED_SELECTOR).length) {
             /* pass in the sendResponse callback */
             DEV && console.debug(CONSOLE_STRINGS.selected_threads_print_debug);
-            fetchEmails(send_response, inboxId);
+            fetchEmails(send_response);
         } else {
             send_response({ 'none': true });
         }

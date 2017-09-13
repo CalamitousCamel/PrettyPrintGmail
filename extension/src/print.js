@@ -14,6 +14,8 @@ var CONSOLE_STRINGS = {
     parsing_email_error: "[PrettyPrintGmail] Parsing email error",
     options_debug: "[PrettyPrintGmail] Got options: ",
     inboxId_debug: "[PrettyPrintGmail] Got inboxId: ",
+    url_debug: "[PrettyPrintGmail] Got canonicalUrl: ",
+    proxified_debug: "[PrettyPrintGmail] Handling a proxified image: ",
 }
 
 DEV && console.debug(CONSOLE_STRINGS.print_ran_debug);
@@ -191,12 +193,15 @@ function insertInPage(emails) {
     });
 }
 
-function handleProxified(src, inboxId) {
+function handleProxified(src, inboxId, canonicalUrl) {
     let matcher = src.match(/chrome-extension:\/\/[a-zA-Z]*\/printpage\.html?(.*)/);
     if (matcher) {
+        let proxyUrl = canonicalUrl + inboxId + "/" + matcher[1];
+        DEV && console.debug(CONSOLE_STRINGS.proxified_debug + proxyUrl);
         /* the image has been proxied */
-        return "http://mail.google.com/mail/u/" + inboxId + "/" + matcher[1];
+        return proxyUrl;
     }
+
     return src;
 }
 
@@ -205,12 +210,15 @@ chrome.runtime.onMessage.addListener(
         let emails = message['emails'];
         let options = message['options'];
         let inboxId = message['inboxId'];
+        let canonicalUrl = message['url'];
 
         DEV && console.debug(CONSOLE_STRINGS.inboxId_debug);
         DEV && console.debug(inboxId);
         DEV && console.debug(CONSOLE_STRINGS.options_debug);
         DEV && console.debug(options);
-        DEV && console.debug(CONSOLE_STRINGS.onmessage_debug);
+        DEV && console.debug(CONSOLE_STRINGS.url_debug);
+        DEV && console.debug(canonicalUrl);
+
         if (emails) {
             /* Set title: */
             document.title = emails.length + " email" + (emails.length == 1 ? "" : "s");
@@ -232,7 +240,7 @@ chrome.runtime.onMessage.addListener(
              * However, I'm confused as to how the image can be incomplete
              * and still the onerror function does not fire.
              */
-            images[i].src = handleProxified(images[i].src, inboxId);
+            images[i].src = handleProxified(images[i].src, inboxId, canonicalUrl);
             images[i].src += "?t=" + new Date().getTime();
         }
         /* Check every 500 ms */
