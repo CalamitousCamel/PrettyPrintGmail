@@ -295,7 +295,7 @@ chrome.browserAction.onClicked.addListener(function(tab) {
 chrome.runtime.onInstalled.addListener(function(details) {
     if (details.reason == "install") {
         /* If first install, set uninstall URL */
-        var uninstallGoogleFormLink = 'https://docs.google.com/forms/d/e/1FAIpQLSeKS-A4VWmXGnKc6jEqXpBSyjCuZ5Ot5ceTGyXuqIOxEbduHQ/viewform';
+        var uninstallGoogleFormLink = 'http://feedback.shivankaul.com';
         if (chrome.runtime.setUninstallURL) {
             !DEV && chrome.runtime.setUninstallURL(uninstallGoogleFormLink);
         }
