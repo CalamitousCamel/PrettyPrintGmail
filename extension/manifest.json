@@ -8,14 +8,14 @@
   ],
   "permissions": [
     "activeTab",
-    "*://mail.google.com/mail/u/*",
+    "*://mail.google.com/*",
     "tabs",
     "storage"
   ],
   "content_scripts": [
     {
       "matches": [
-        "*://mail.google.com/mail/u/*view=pt*&msg=*"
+        "*://mail.google.com/*view=pt*"
       ],
       "js": [
         "src/print_native.js"
