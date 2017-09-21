@@ -97,8 +97,6 @@ If you use this extension, please consider donating:
 
 This project (especially the multiple printing feature) took (takes) a ridiculous amount of time and effort to develop. Your donations help me devote time to features/bug-fixes by having to spend less time earning money to buy oatmeal. Because oatmeal is the best. Oatmeal + yogurt + berries + banana + flaxseed + peanut butter. You're welcome.
 
-### Known Bugs
-If you have inline images in your emails, they might not be loaded correctly because the cleaned up emails are inserted into a new printing page and this may violate the same-origin policy. I'm working on this - in case there is active interest in solving this issue, I'll work on this, well, more (so please let me know!).
 
 ### Acknowledgements
 Icon credits: Plainicon from www.flaticon.com.
