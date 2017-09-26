@@ -4,7 +4,7 @@
 
 # Pretty Print for Gmail
 
-[![Chrome Web Store](https://img.shields.io/chrome-web-store/d/gdanfldekhdgkbmdoeapbgbcpfglkflg.svg)]()
+[![Chrome Web Store](https://img.shields.io/chrome-web-store/d/gdanfldekhdgkbmdoeapbgbcpfglkflg.svg?label=users)]()
 
 Pretty print Gmail emails. [Chrome extension](https://chrome.google.com/webstore/detail/pretty-print-gmail/gdanfldekhdgkbmdoeapbgbcpfglkflg). Get rid of that clunky Gmail logo and other visual clutter while printing emails.
 
